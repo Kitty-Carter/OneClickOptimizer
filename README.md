@@ -1,26 +1,81 @@
-# OneClickOptimizer
+<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Your apps. Your workflow." width="100%"></p>
 
-**Windows software configuration, one module at a time.** | [简体中文](README.zh-CN.md)
+<h1 align="center">OneClickOptimizer</h1>
+<p align="center"><strong>Make every app work the way you want.</strong></p>
+<p align="center">
+  <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
+  <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%2F%2011-3776bd?style=flat-square">
+  <img alt="PowerShell 5.1" src="https://img.shields.io/badge/PowerShell-5.1-526f9b?style=flat-square">
+  <img alt="Development preview" src="https://img.shields.io/badge/version-0.1.0--alpha.1-c58c43?style=flat-square">
+</p>
 
-Development preview `0.1.0-alpha.1`. OneClickOptimizer is an offline, user-level configuration toolkit, not a generic PC speed booster. It ships the Positron module only; other applications are future work. No claim of universal performance improvements.
+<p align="center">
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip"><strong>⬇ Download toolkit (ZIP)</strong></a> &nbsp;·&nbsp;
+<a href="modules/positron">Positron module</a> &nbsp;·&nbsp;
+<a href="docs/ROADMAP.md">Roadmap</a> &nbsp;·&nbsp;
+<a href="README.zh-CN.md">简体中文</a>
+</p>
 
-[![Windows validation](https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml)
+---
 
-## Quick start
+OneClickOptimizer is an offline, open-source toolkit for configuring Windows applications through small, independently maintained modules. It finds installed software, checks settings, backs up changes, applies a workflow preset and verifies the resulting configuration.
 
-1. Extract the whole package on Windows 10/11, with Windows PowerShell 5.1.
-2. Open `启动全家桶.bat`, select Positron and choose check-only first.
-3. Save your work; choose optimize if you accept the changes. The tool checks compatibility, backs up existing settings and verifies configuration after writing.
-4. Restart Positron yourself. See [module instructions](modules/positron/使用说明.md) for independent BAT launchers and recovery.
+> [!NOTE]
+> **Development preview · v0.1.0-alpha.1** — Positron is the only implemented module. The ZIP above is a source snapshot, not a stable Release. This is not a universal PC speed booster.
 
-| Module | Status | Capabilities |
-|---|---|---|
-| Positron | Preview | Locate installation, check, optimize, backup on write, self-test |
+## Why OneClickOptimizer?
 
-The seven settings represent a specific workflow preference. Disabling diagnostics may hide helpful warnings; selecting base R package installation is not a verified speed improvement. Workspace and profile settings can override user settings. Arbitrary custom paths may require explicit input. Runtime UI and package installation speed are not covered by file-level verification.
+| Find & inspect | Back up & apply | Verify & maintain |
+| :--- | :--- | :--- |
+| Discover common and custom installation paths; inspect before changing settings. | Keep unrelated configuration intact. Back up existing settings before a write. | Read back changes, report partial support, and keep modules independently testable. |
 
-## Development
+## Available modules
 
-See [module contract](docs/MODULE-CONTRACT.md), [roadmap](docs/ROADMAP.md), [validation status](docs/VALIDATION.md), and [AGENTS.md](AGENTS.md). The Windows workflow runs parser and fixture tests, but must pass in GitHub before a stable release. No system-wide policy changes, no credential collection, no forced software shutdown.
+| Application | Status | What it does |
+| :--- | :--- | :--- |
+| **[Positron](modules/positron)** | Preview · 7 setting goals | Quarto outline, editor rulers and zoom, R package installer, notebook execution and diagnostics. |
 
-MIT license. This project is independent of Posit and the applications it configures.
+[Read the Positron guide →](modules/positron/使用说明.md)
+
+## Get started
+
+1. [Download the ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) and extract the **entire** folder on Windows 10/11 with Windows PowerShell 5.1.
+2. Double-click **`启动全家桶.bat`**.
+3. Choose Positron → **Check only**. Save your work, then choose Optimize if you accept the changes.
+4. Restart Positron yourself. For manual recovery or standalone launchers, see the [module guide](modules/positron/使用说明.md).
+
+> [!IMPORTANT]
+> The Positron preset reflects a particular workflow. Turning off R diagnostics may hide useful warnings, and choosing the base installer is not a proven speed improvement. Workspace and profile settings may override user settings. Arbitrary custom paths may need explicit input. Automatic rollback and cross-machine acceptance are not complete.
+
+## Built for extension
+
+```text
+OneClickOptimizer/
+├── core/                 Module catalog and dispatch
+├── modules/
+│   └── positron/         First independent module
+├── tests/                Isolated Windows tests
+├── docs/                 Contracts, evidence and roadmap
+└── 启动全家桶.bat         One-click entry
+```
+
+| Milestone | Scope |
+| :--- | :--- |
+| **0.1.0-alpha.1 · now** | Positron preview, module catalog, Windows validation workflow |
+| 0.1.0 | Recovery, regression tests, release packaging |
+| 0.2.0–0.3.0 | Shared infrastructure and a second real module |
+| 1.0.0 | Broader compatibility and verified recovery before stable release |
+
+[Full roadmap](docs/ROADMAP.md) · [Validation evidence](docs/VALIDATION.md) · [Windows CI](https://github.com/Kitty-Carter/OneClickOptimizer/actions)
+
+## Safety and contribution
+
+User-level, offline-first. No forced app shutdown, administrator privileges by default, system-wide security policy changes, or credential collection. Configuration verification is not a live UI or speed benchmark.
+
+[Module contract](docs/MODULE-CONTRACT.md) · [Contributing](CONTRIBUTING.md) · [AI maintenance rules](AGENTS.md) · [Changelog](CHANGELOG.md)
+
+---
+
+<p align="center">MIT licensed · Independent community project, not affiliated with Posit.<br>Made for people who care about their workflow.</p>
+
