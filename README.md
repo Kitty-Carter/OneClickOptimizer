@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip"><strong>⬇ Download toolkit (ZIP)</strong></a> &nbsp;·&nbsp;
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases"><strong>⬇ Download releases</strong></a> &nbsp;·&nbsp;
 <a href="modules/positron">Positron module</a> &nbsp;·&nbsp;
 <a href="docs/ROADMAP.md">Roadmap</a> &nbsp;·&nbsp;
 <a href="README.zh-CN.md">简体中文</a>
@@ -22,7 +22,7 @@
 OneClickOptimizer is an offline, open-source toolkit for configuring Windows applications through small, independently maintained modules. It finds installed software, checks settings, backs up changes, applies a workflow preset and verifies the resulting configuration.
 
 > [!NOTE]
-> **Development preview · v0.1.0-alpha.1** — Positron is the only implemented module. The ZIP above is a source snapshot, not a stable Release. This is not a universal PC speed booster.
+> **Development preview · v0.1.0-alpha.1** — Positron is the only implemented module. Choose a user ZIP under Assets on the Releases page. This is a preview, not a stable release. This is not a universal PC speed booster.
 
 ## Why OneClickOptimizer?
 
@@ -40,7 +40,9 @@ OneClickOptimizer is an offline, open-source toolkit for configuring Windows app
 
 ## Get started
 
-1. [Download the ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) and extract the **entire** folder on Windows 10/11 with Windows PowerShell 5.1.
+Only need Positron? Select `Positron-Optimizer-Windows.zip` under Assets. Beginners need not download Source code. If the release is not available yet, developers can [download the main snapshot](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip).
+
+1. [Download OneClickOptimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases) and extract the **entire** folder on Windows 10/11 with Windows PowerShell 5.1.
 2. Double-click **`启动全家桶.bat`**.
 3. Choose Positron → **Check only**. Save your work, then choose Optimize if you accept the changes.
 4. Restart Positron yourself. For manual recovery or standalone launchers, see the [module guide](modules/positron/使用说明.md).

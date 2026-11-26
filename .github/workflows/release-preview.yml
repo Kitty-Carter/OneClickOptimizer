@@ -1,0 +1,89 @@
+name: Publish first preview
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: oco-first-preview-v0.1.0-alpha.1
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'Kitty-Carter/OneClickOptimizer' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate PowerShell syntax
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Get-ChildItem -Recurse -File | Where-Object Extension -in '.ps1','.psm1' | ForEach-Object {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: Build allowlisted ZIP files
+        shell: pwsh
+        run: |
+          python .github/scripts/build-release.py
+          if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
+      - name: Test extracted packages
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $full = Join-Path $env:RUNNER_TEMP 'oco full package'
+          $solo = Join-Path $env:RUNNER_TEMP 'oco standalone package'
+          Expand-Archive -LiteralPath dist/OneClickOptimizer-Windows.zip -DestinationPath $full
+          Expand-Archive -LiteralPath dist/Positron-Optimizer-Windows.zip -DestinationPath $solo
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $full 'OneClickOptimizer.ps1') -Mode list
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted catalog failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $full 'tests/Test-Positron.ps1')
+          if ($LASTEXITCODE -ne 0) { throw 'Extracted integration tests failed' }
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $solo 'Optimize-Positron.ps1') -SelfTest
+          if ($LASTEXITCODE -ne 0) { throw 'Standalone self-test failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: oco-first-preview
+          path: |
+            dist/OneClickOptimizer-Windows.zip
+            dist/Positron-Optimizer-Windows.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: oco-first-preview
+          path: dist
+      - name: Create one preview release without overwriting existing assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag=v0.1.0-alpha.1
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release already exists (including drafts). No overwrite."
+            exit 0
+          fi
+          (cd dist && sha256sum -c SHA256SUMS.txt)
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "OneClickOptimizer v0.1.0-alpha.1 | Windows Preview" \
+            --notes-file docs/RELEASE-NOTES-v0.1.0-alpha.1.md --draft --prerelease \
+            dist/OneClickOptimizer-Windows.zip dist/Positron-Optimizer-Windows.zip dist/SHA256SUMS.txt
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets,isDraft | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["isDraft"] and {a["name"] for a in d["assets"]}=={"OneClickOptimizer-Windows.zip","Positron-Optimizer-Windows.zip","SHA256SUMS.txt"} and all(a["size"]>0 for a in d["assets"])'
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false --prerelease

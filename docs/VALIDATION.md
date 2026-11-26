@@ -7,3 +7,9 @@ New package: Windows integration test and GitHub Actions workflow supplied, but 
 ## 2026-11-26 observed Windows results
 
 The revised module was transferred to a temporary directory and its SHA-256 matched the packaged source (f5872f2f3d7b00cc1d875a56e4861b052b5db29ed9ffc4c374e3ad879898017d). Windows PowerShell 5.1 self-test exited 0; real Positron 2026.11.1 check-only exited 0 with all seven goals recognized and zero changes. An equivalent isolated integration harness exercised explicit Chinese/space paths, check-only byte equality, backup creation, original SHA-256 equality, seven setting writes, idempotence and duplicate-key rejection; all assertions passed. No live settings were changed. Exact repository test runner, unified launcher, CI and cross-machine acceptance remain unverified. The remote console displayed Chinese text with an encoding mismatch; BAT display has not been interactively verified.
+
+## Repository CI confirmed on 2026-11-26
+
+- [Initial import](https://github.com/Kitty-Carter/OneClickOptimizer/actions/runs/45729819807): success.
+- [README redesign](https://github.com/Kitty-Carter/OneClickOptimizer/actions/runs/45730571991): success; parser, catalog and isolated integration steps succeeded.
+- These runs predate release packaging and the standalone confirmation change. The release workflow tests the exact extracted packages before publishing. No live GUI, automatic rollback, performance or cross-machine acceptance claim.

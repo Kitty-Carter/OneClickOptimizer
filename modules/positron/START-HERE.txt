@@ -1,0 +1,9 @@
+﻿Positron Optimizer — 开发预览 / Preview
+
+1. 确保已安装 Positron，保存工作。
+2. 全部解压，不要直接在 ZIP 内运行。
+3. 双击 仅检查不修改.bat，核对版本、路径、目标设置。
+4. 双击 一键优化.bat，确认 Y 才执行。
+5. 自行重启 Positron；备份恢复和风险见 使用说明.md。
+
+English: Extract all files. Check first, then run the optimize BAT and confirm Y. Restart Positron manually.

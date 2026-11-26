@@ -1,0 +1,10 @@
+﻿OneClickOptimizer — 一键优化全家桶 v0.1.0-alpha.1
+
+1. 全部解压到普通文件夹，不要在 ZIP 内运行。
+2. 确保已安装 Positron，保存工作。
+3. 双击 启动全家桶.bat，选择 Positron，先选仅检查。
+4. 确认接受设置后再次运行，选择优化并确认。
+5. 自行重启 Positron。恢复方法见 modules/positron/使用说明.md。
+
+开发预览：不保证提速，自动恢复尚未完成。无需管理员权限。
+English: Extract everything, open the root BAT, select Positron, check before optimizing, then restart the application manually.

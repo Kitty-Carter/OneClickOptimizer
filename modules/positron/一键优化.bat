@@ -13,6 +13,15 @@ if not exist "%PS%" (
   pause
   exit /b 1
 )
+echo PREVIEW: this changes the current user's Positron settings.
+echo Save your work. Run the check-only BAT first to inspect the changes.
+echo R diagnostics may be disabled. Package installation speed is not guaranteed.
+choice /C YN /N /M "Apply the Positron workflow preset? [Y/N] "
+if not "%ERRORLEVEL%"=="1" (
+  echo Cancelled. No Positron settings were modified.
+  pause
+  exit /b 1
+)
 echo Running built-in self-tests before modifying any settings...
 "%PS%" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -SelfTest
 if errorlevel 1 (
