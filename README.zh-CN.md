@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Your apps. Your workflow." width="100%"></p>
 
 <h1 align="center">一键优化全家桶 · OneClickOptimizer</h1>
-<p align="center"><strong>让每个软件都按照你的使用习惯工作。</strong></p>
+<p align="center"><strong>首发模块 · Positron 一键优化工具</strong><br>让每个软件都按照你的使用习惯工作。</p>
 <p align="center">
   <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
@@ -11,7 +11,8 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases"><strong>⬇ 下载发布版（Releases）</strong></a> &nbsp;·&nbsp;
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><img alt="下载 Positron 一键优化工具" src="https://img.shields.io/badge/Positron-DOWNLOAD-14a68d?style=for-the-badge"></a><br>
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><strong>查看发布版及附件</strong></a> &nbsp;·&nbsp;
 <a href="modules/positron">Positron 模块</a> &nbsp;·&nbsp;
 <a href="docs/ROADMAP.md">路线图</a> &nbsp;·&nbsp;
 <a href="README.md">English</a>
@@ -23,6 +24,17 @@ OneClickOptimizer 是一个开源、离线、按软件模块扩展的 Windows �
 
 > [!NOTE]
 > **开发预览版 · v0.1.0-alpha.1** — 目前仅实现 Positron 模块。在 Releases 的 Assets 中选择用户版 ZIP；这是预览版，不是稳定版。
+
+## 首发模块 | Positron 一键优化工具
+
+**只想优化 Positron？请选择独立版，无需下载全家桶。**
+
+| 下载选项 | 适合谁 |
+| :--- | :--- |
+| **[Positron-一键优化工具-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | 推荐 · Positron 用户，解压后双击 BAT |
+| [OneClickOptimizer-全家桶预览版-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | 想体验统一入口和未来模块扩展的用户 |
+
+在 Release 的 Assets 中选择对应文件；两者都属于开发预览版，目前包含相同的 Positron 优化功能。
 
 ## 为什么选择它？
 
@@ -40,12 +52,12 @@ OneClickOptimizer 是一个开源、离线、按软件模块扩展的 Windows �
 
 ## 快速开始
 
-仅使用 Positron？在 Assets 中选择 `Positron-Optimizer-Windows.zip`。小白不必下载 Source code。发布尚未完成时，开发者可[下载主分支源码](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip)。
+1. 打开 [Positron 发布页](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)，下载独立版 `Positron-一键优化工具-Windows.zip`（推荐），完整解压。需要已安装 Positron、Windows 10/11 和 Windows PowerShell 5.1。
+2. 双击 **`仅检查不修改.bat`**，核对安装位置和计划修改的设置。
+3. 保存工作，双击 **`一键优化.bat`**，确认 Y 后执行。
+4. 自行重启 Positron。恢复方法见包内使用说明。
 
-1. [下载 OneClickOptimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases)，在 Windows 10/11 解压**整个文件夹**，确保 Windows PowerShell 5.1 可用。
-2. 双击 **`启动全家桶.bat`**。
-3. 选择 Positron → **仅检查**；保存正在编辑的内容，确认接受修改后再选择优化。
-4. 自行重启 Positron。独立 BAT 与手动恢复方法见[模块说明](modules/positron/使用说明.md)。
+如果选择全家桶包，则双击 `启动全家桶.bat`，选择 Positron → 仅检查 → 优化。开发者可另行[下载主分支源码](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip)。
 
 > [!IMPORTANT]
 > 七项配置是特定工作流偏好，并非所有用户的最佳设置。关闭 R 诊断可能隐藏有效警告；base 安装器不保证提速。工作区及 Profile 可能覆盖用户设置。极端自定义路径需要手动指定。自动回退与跨电脑兼容性验收尚未完成。

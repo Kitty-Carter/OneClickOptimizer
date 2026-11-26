@@ -1,0 +1,27 @@
+name: Positron release presentation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/rename-preview-assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: oco-first-preview-v0.1.0-alpha.1
+  cancel-in-progress: false
+jobs:
+  rename:
+    if: github.repository == 'Kitty-Carter/OneClickOptimizer' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Rename existing verified ZIP assets and refresh release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/rename-preview-assets.py

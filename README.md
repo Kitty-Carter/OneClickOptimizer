@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Your apps. Your workflow." width="100%"></p>
 
 <h1 align="center">OneClickOptimizer</h1>
-<p align="center"><strong>Make every app work the way you want.</strong></p>
+<p align="center"><strong>Featured module · Positron Optimizer</strong><br>Make every app work the way you want.</p>
 <p align="center">
   <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
@@ -11,7 +11,8 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases"><strong>⬇ Download releases</strong></a> &nbsp;·&nbsp;
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><img alt="Download Positron Optimizer" src="https://img.shields.io/badge/Positron-DOWNLOAD-14a68d?style=for-the-badge"></a><br>
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><strong>Release & downloads</strong></a> &nbsp;·&nbsp;
 <a href="modules/positron">Positron module</a> &nbsp;·&nbsp;
 <a href="docs/ROADMAP.md">Roadmap</a> &nbsp;·&nbsp;
 <a href="README.zh-CN.md">简体中文</a>
@@ -23,6 +24,17 @@ OneClickOptimizer is an offline, open-source toolkit for configuring Windows app
 
 > [!NOTE]
 > **Development preview · v0.1.0-alpha.1** — Positron is the only implemented module. Choose a user ZIP under Assets on the Releases page. This is a preview, not a stable release. This is not a universal PC speed booster.
+
+## Featured module | Positron Optimizer
+
+**Only need Positron? Choose the standalone ZIP. No full toolkit required.**
+
+| Download | Best for |
+| :--- | :--- |
+| **[Positron-一键优化工具-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | Recommended · Positron users; extract and double-click the BAT |
+| [OneClickOptimizer-全家桶预览版-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | Users who want the unified toolkit entry point |
+
+Choose the corresponding asset on the release page. Both previews contain the same Positron configuration functionality.
 
 ## Why OneClickOptimizer?
 
@@ -40,12 +52,12 @@ OneClickOptimizer is an offline, open-source toolkit for configuring Windows app
 
 ## Get started
 
-Only need Positron? Select `Positron-Optimizer-Windows.zip` under Assets. Beginners need not download Source code. If the release is not available yet, developers can [download the main snapshot](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip).
+1. Open the [Positron release](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1), choose the recommended standalone ZIP `Positron-一键优化工具-Windows.zip` and extract everything. Requires an installed Positron, Windows 10/11 and Windows PowerShell 5.1.
+2. Double-click **`仅检查不修改.bat`** (check only) to inspect paths and changes.
+3. Save your work, run **`一键优化.bat`** (optimize) and confirm Y.
+4. Restart Positron yourself. See the included guide for manual recovery.
 
-1. [Download OneClickOptimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases) and extract the **entire** folder on Windows 10/11 with Windows PowerShell 5.1.
-2. Double-click **`启动全家桶.bat`**.
-3. Choose Positron → **Check only**. Save your work, then choose Optimize if you accept the changes.
-4. Restart Positron yourself. For manual recovery or standalone launchers, see the [module guide](modules/positron/使用说明.md).
+For the full toolkit ZIP, run `启动全家桶.bat` and select Positron → check → optimize. Developers can [download the main source snapshot](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip).
 
 > [!IMPORTANT]
 > The Positron preset reflects a particular workflow. Turning off R diagnostics may hide useful warnings, and choosing the base installer is not a proven speed improvement. Workspace and profile settings may override user settings. Arbitrary custom paths may need explicit input. Automatic rollback and cross-machine acceptance are not complete.
