@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><img alt="下载 Positron 一键优化工具" src="https://img.shields.io/badge/Positron-DOWNLOAD-14a68d?style=for-the-badge"></a><br>
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip"><img src="docs/assets/download-positron.svg" alt="下载 Positron 一键优化工具（ZIP）" width="300"></a><br>
 <a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><strong>查看发布版及附件</strong></a> &nbsp;·&nbsp;
 <a href="modules/positron">Positron 模块</a> &nbsp;·&nbsp;
 <a href="docs/ROADMAP.md">路线图</a> &nbsp;·&nbsp;

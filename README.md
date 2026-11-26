@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><img alt="Download Positron Optimizer" src="https://img.shields.io/badge/Positron-DOWNLOAD-14a68d?style=for-the-badge"></a><br>
+<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip"><img src="docs/assets/download-positron.svg" alt="Download Positron Optimizer (ZIP)" width="300"></a><br>
 <a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><strong>Release & downloads</strong></a> &nbsp;·&nbsp;
 <a href="modules/positron">Positron module</a> &nbsp;·&nbsp;
 <a href="docs/ROADMAP.md">Roadmap</a> &nbsp;·&nbsp;
