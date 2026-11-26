@@ -31,8 +31,8 @@ OneClickOptimizer is an offline, open-source toolkit for configuring Windows app
 
 | Download | Best for |
 | :--- | :--- |
-| **[Positron-一键优化工具-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | Recommended · Positron users; extract and double-click the BAT |
-| [OneClickOptimizer-全家桶预览版-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | Users who want the unified toolkit entry point |
+| **[Positron-OneClick-Optimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | Recommended · Positron users; extract and double-click the BAT |
+| [OneClickOptimizer-Toolkit-Preview-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | Users who want the unified toolkit entry point |
 
 Choose the corresponding asset on the release page. Both previews contain the same Positron configuration functionality.
 
@@ -52,7 +52,7 @@ Choose the corresponding asset on the release page. Both previews contain the sa
 
 ## Get started
 
-1. Open the [Positron release](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1), choose the recommended standalone ZIP `Positron-一键优化工具-Windows.zip` and extract everything. Requires an installed Positron, Windows 10/11 and Windows PowerShell 5.1.
+1. Open the [Positron release](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1), choose the recommended standalone ZIP `Positron-OneClick-Optimizer-Windows.zip` and extract everything. Requires an installed Positron, Windows 10/11 and Windows PowerShell 5.1.
 2. Double-click **`仅检查不修改.bat`** (check only) to inspect paths and changes.
 3. Save your work, run **`一键优化.bat`** (optimize) and confirm Y.
 4. Restart Positron yourself. See the included guide for manual recovery.

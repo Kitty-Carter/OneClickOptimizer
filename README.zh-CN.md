@@ -31,8 +31,8 @@ OneClickOptimizer 是一个开源、离线、按软件模块扩展的 Windows �
 
 | 下载选项 | 适合谁 |
 | :--- | :--- |
-| **[Positron-一键优化工具-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | 推荐 · Positron 用户，解压后双击 BAT |
-| [OneClickOptimizer-全家桶预览版-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | 想体验统一入口和未来模块扩展的用户 |
+| **[Positron-OneClick-Optimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | 推荐 · Positron 用户，解压后双击 BAT |
+| [OneClickOptimizer-Toolkit-Preview-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | 想体验统一入口和未来模块扩展的用户 |
 
 在 Release 的 Assets 中选择对应文件；两者都属于开发预览版，目前包含相同的 Positron 优化功能。
 
@@ -52,7 +52,7 @@ OneClickOptimizer 是一个开源、离线、按软件模块扩展的 Windows �
 
 ## 快速开始
 
-1. 打开 [Positron 发布页](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)，下载独立版 `Positron-一键优化工具-Windows.zip`（推荐），完整解压。需要已安装 Positron、Windows 10/11 和 Windows PowerShell 5.1。
+1. 打开 [Positron 发布页](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)，下载独立版 `Positron-OneClick-Optimizer-Windows.zip`（推荐），完整解压。需要已安装 Positron、Windows 10/11 和 Windows PowerShell 5.1。
 2. 双击 **`仅检查不修改.bat`**，核对安装位置和计划修改的设置。
 3. 保存工作，双击 **`一键优化.bat`**，确认 Y 后执行。
 4. 自行重启 Positron。恢复方法见包内使用说明。

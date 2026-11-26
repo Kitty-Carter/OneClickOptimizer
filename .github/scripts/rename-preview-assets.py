@@ -12,13 +12,14 @@ RELEASE_ID = 458819565
 TITLE = "Positron 一键优化工具 v0.1.0-alpha.1 | Windows Preview"
 ROOT = Path(__file__).resolve().parents[2]
 spec = [
-    (793782042, "Positron-Optimizer-Windows.zip", "Positron-一键优化工具-Windows.zip",
+    (793782042, "Positron-Optimizer-Windows.zip", "Positron-OneClick-Optimizer-Windows.zip",
      "e2d49b424b17b133499cda407a53bcc9352e618ed115f23ca025554cec7d9484"),
-    (793782038, "OneClickOptimizer-Windows.zip", "OneClickOptimizer-全家桶预览版-Windows.zip",
+    (793782038, "OneClickOptimizer-Windows.zip", "OneClickOptimizer-Toolkit-Preview-Windows.zip",
      "0a08c700efe49057b23042b0ee3ecc4456b4f4652f1d6611def18f5c58723ffd"),
 ]
 OLD_CHECKSUM_ID = 793782040
-STAGED = "SHA256SUMS-pos-preview.tmp.txt"
+STAGED = "SHA256SUMS-pos-preview-ascii.tmp.txt"
+ABANDONED_STAGE_ID = 793801599
 OLD_NAME = "SHA256SUMS-before-rename.txt"
 CHECKSUM = "SHA256SUMS.txt"
 
@@ -54,7 +55,7 @@ with tempfile.TemporaryDirectory() as temp:
     # Verify the actual published ZIP bytes before any changes.
     for asset_id, old, new, digest in spec:
         a = before[asset_id]
-        assert a["name"] in (old, new)
+        assert a["name"] in (old, new) or (asset_id == 793782042 and a["name"] == "Positron-.-Windows.zip")
         assert sha(download(a["name"], d)) == digest
     existing = {a["name"]: a for a in before.values()}
     current = existing.get(CHECKSUM)
@@ -77,6 +78,8 @@ with tempfile.TemporaryDirectory() as temp:
         if a["name"] != new:
             rename(asset_id, new)
         assert {a["id"]: a for a in assets()}[asset_id]["name"] == new
+        label = "Positron 一键优化工具（推荐） / Recommended" if asset_id == 793782042 else "OneClickOptimizer 全家桶预览版 / Full toolkit"
+        api(f"releases/assets/{asset_id}", "--method", "PATCH", "-f", f"label={label}")
     if not canonical:
         old = {a["id"]: a for a in assets()}.get(OLD_CHECKSUM_ID)
         if old and old["name"] == CHECKSUM:
@@ -94,6 +97,10 @@ with tempfile.TemporaryDirectory() as temp:
     if old:
         assert old["name"] == OLD_NAME
         gh("api", f"repos/{REPO}/releases/assets/{OLD_CHECKSUM_ID}", "--method", "DELETE")
+    abandoned = {a["id"]: a for a in assets()}.get(ABANDONED_STAGE_ID)
+    if abandoned:
+        assert abandoned["name"] == "SHA256SUMS-pos-preview.tmp.txt"
+        gh("api", f"repos/{REPO}/releases/assets/{ABANDONED_STAGE_ID}", "--method", "DELETE")
     final = assets()
     assert {a["name"] for a in final} == {spec[0][2], spec[1][2], CHECKSUM}
     assert api(f"releases/tags/{TAG}")["name"] == TITLE

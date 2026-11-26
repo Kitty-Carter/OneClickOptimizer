@@ -8,8 +8,8 @@
 
 | 下载选项 | 适用对象 |
 | :--- | :--- |
-| **[⬇ 下载 Positron 独立版](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-%E4%B8%80%E9%94%AE%E4%BC%98%E5%8C%96%E5%B7%A5%E5%85%B7-Windows.zip)** | **推荐** · 只想优化 Positron 的用户 |
-| [⬇ 下载 OneClickOptimizer 全家桶预览版](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/OneClickOptimizer-%E5%85%A8%E5%AE%B6%E6%A1%B6%E9%A2%84%E8%A7%88%E7%89%88-Windows.zip) | 想体验统一入口及模块扩展的用户 |
+| **[⬇ 下载 Positron 独立版](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip)** | **推荐** · 只想优化 Positron 的用户 |
+| [⬇ 下载 OneClickOptimizer 全家桶预览版](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/OneClickOptimizer-Toolkit-Preview-Windows.zip) | 想体验统一入口及模块扩展的用户 |
 | [SHA256SUMS.txt](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/SHA256SUMS.txt) | 下载完整性校验 |
 
 两种 ZIP 当前都包含相同的 Positron 优化功能，不必两个都下载。普通用户无需下载 Source code。
