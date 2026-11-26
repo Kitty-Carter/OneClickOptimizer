@@ -1,0 +1,15 @@
+# Never commit private user state or generated artifacts
+/dist/
+*.log
+*.tmp
+*.zip
+*.bak
+.env
+.env.*
+**/settings.before.json
+**/settings.after.json
+**/settings.concurrent.json
+**/settings.did-not-exist.txt
+**/Positron-settings-backup-*/
+**/report.txt
+**/personal/

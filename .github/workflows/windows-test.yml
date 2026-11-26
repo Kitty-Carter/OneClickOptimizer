@@ -1,0 +1,28 @@
+name: Windows validation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse all PowerShell sources
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Get-ChildItem -Recurse -File | Where-Object Extension -in '.ps1','.psm1' | ForEach-Object {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName,[ref]$tokens,[ref]$errors)
+            if ($errors.Count) { throw ($errors | Out-String) }
+          }
+      - name: List module catalog
+        shell: powershell
+        run: powershell.exe -NoProfile -File .\OneClickOptimizer.ps1 -Mode list
+      - name: Test Positron in isolated fixtures
+        shell: powershell
+        run: powershell.exe -NoProfile -File .\tests\Test-Positron.ps1

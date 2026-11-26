@@ -1,0 +1,7 @@
+# Module contract v1
+
+Each `modules/<id>` has a manifest.json (schemaVersion 1, id matching folder, name, version, status, entry filename, modes), standalone entry, usage docs, and tests. Manifest files are local trusted source code; never load executable modules from the network automatically. Catalog validates directory ID and simple entry filename. The current core handles discovery of modules and dispatch, not generic application discovery or configuration writes.
+
+Implemented modes: check -> `-CheckOnly` (no user config write); selftest -> `-SelfTest` (temporary files only); optimize -> default invocation (back up, apply, verify). Preserve exit 0/1/2. In preview, independent launchers remain supported. A missing app must fail or be reported absent, never install implicitly. Any unsupported setting is reported, not fabricated. Future interface: Detect/Inspect/Plan/Backup/Optimize/Verify/Restore/Benchmark/SelfTest; don't declare capabilities before implementation.
+
+Every module documents target settings, version evidence, assumptions and risks, scope, recovery instructions, exit behavior, and test evidence. Preserve unrelated config, refuse invalid inputs, and never use global policy bypass. Personal backups stay outside Git. Changes to auth, credentials, security policy, other users or network settings are prohibited without a specifically designed and explicitly authorized workflow.

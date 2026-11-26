@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "positron",
+  "name": "Positron",
+  "version": "0.1.0-alpha.1",
+  "status": "preview",
+  "entry": "Optimize-Positron.ps1",
+  "modes": [
+    "check",
+    "optimize",
+    "selftest"
+  ],
+  "requires": {
+    "os": "Windows",
+    "powershell": "5.1"
+  },
+  "exitCodes": {
+    "0": "confirmed configuration goals",
+    "1": "failed or cancelled",
+    "2": "partial support"
+  },
+  "risk": "user-preference",
+  "source": "User-provided Positron configuration guide; implementation adapted for locally registered settings."
+}
