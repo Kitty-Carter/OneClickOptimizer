@@ -1,0 +1,32 @@
+name: Refresh preview branding
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/refresh-preview-branding.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: oco-first-preview-v0.1.0-alpha.1
+  cancel-in-progress: false
+jobs:
+  update:
+    if: github.repository == 'Kitty-Carter/OneClickOptimizer' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Update existing preview description only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag=v0.1.0-alpha.1
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,assets | python3 -c 'import json,sys; d=json.load(sys.stdin); assert not d["isDraft"] and d["isPrerelease"]; assert {a["name"] for a in d["assets"]} == {"Positron-OneClick-Optimizer-Windows.zip","OneClickOptimizer-Toolkit-Preview-Windows.zip","SHA256SUMS.txt"}'
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file docs/RELEASE-NOTES-v0.1.0-alpha.1.md
+          gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json body | python3 -c 'import json,sys; assert "Software optimization, one click away." in json.load(sys.stdin)["body"]'

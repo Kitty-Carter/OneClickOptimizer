@@ -1,8 +1,10 @@
-<p align="center"><img src="https://github.com/Kitty-Carter/OneClickOptimizer/raw/66fcf20fe30d2f15ed8e0ecdc78f04bdf1a67fbd/docs/assets/banner.svg" alt="OneClickOptimizer" width="100%"></p>
+<p align="center"><img src="https://github.com/Kitty-Carter/OneClickOptimizer/raw/main/docs/assets/banner.svg" alt="OneClickOptimizer" width="100%"></p>
 
 ## Positron 一键优化工具 | Featured module
 
-**Windows 开发预览版 · OneClickOptimizer 首发模块**
+**让软件优化，只需一键。 · Software optimization, one click away.**
+
+Windows 开发预览版 · OneClickOptimizer 首发模块。将有说明依据的七项 Positron 工作流优化方案转化为一键应用工具，备份和回读验证是安全保障，不是个人配置克隆。
 
 ### 下载 / Download
 

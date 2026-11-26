@@ -1,23 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="350" viewBox="0 0 1200 350" role="img" aria-labelledby="title desc">
-<title id="title">OneClickOptimizer</title><desc id="desc">A modular Windows configuration toolkit. Inspect, back up, apply, verify.</desc>
+<title id="title">OneClickOptimizer</title><desc id="desc">Software optimization, one click away. Detect, back up, optimize, verify.</desc>
 <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101b30"/><stop offset="1" stop-color="#101e2b"/></linearGradient><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#b4c9de" stroke-opacity=".07"/></pattern><linearGradient id="accent"><stop stop-color="#50e3c2"/><stop offset="1" stop-color="#77aaff"/></linearGradient></defs>
 <rect x="1" y="1" width="1198" height="348" rx="22" fill="url(#bg)" stroke="#31445b" stroke-width="2"/><rect x="1" y="1" width="1198" height="348" rx="22" fill="url(#grid)"/>
 <g font-family="Segoe UI, Arial, sans-serif">
 <g transform="translate(58 43)"><rect width="44" height="44" rx="11" fill="#50e3c2"/><path d="M12 13h20M12 22h20M12 31h20" stroke="#102333" stroke-width="2.6" stroke-linecap="round"/><g fill="#102333" stroke="#50e3c2" stroke-width="1.4"><circle cx="18" cy="13" r="4"/><circle cx="28" cy="22" r="4"/><circle cx="21" cy="31" r="4"/></g></g>
 <text x="116" y="71" font-size="16" font-weight="700" letter-spacing="2.4" fill="#50e3c2">OCO / OPEN SOURCE</text>
 <text x="58" y="149" font-size="59" font-weight="700" letter-spacing="-1.8" fill="#f5f8fc">OneClickOptimizer</text>
-<text x="61" y="199" font-size="29" font-weight="600" fill="#a6b9cf">Your apps. Your workflow.</text>
-<text x="61" y="238" font-size="19" fill="#a6b9cf">Modular configuration toolkit for Windows</text>
-<rect x="60" y="276" width="225" height="38" rx="7" fill="#50e3c2"/><text x="172.5" y="300" text-anchor="middle" font-size="15" font-weight="700" letter-spacing=".6" fill="#102333">INSPECT · BACK UP · APPLY</text>
+<text x="61" y="199" font-size="28" font-weight="600" fill="#50e3c2">Software optimization, one click away.</text>
+<text x="61" y="238" font-size="19" fill="#a6b9cf">Modular one-click optimization for Windows</text>
+<rect x="60" y="276" width="225" height="38" rx="7" fill="#50e3c2"/><text x="172.5" y="300" text-anchor="middle" font-size="12" font-weight="700" letter-spacing=".2" fill="#102333">DETECT · BACK UP · OPTIMIZE</text>
 <rect x="298" y="276" width="165" height="38" rx="7" fill="none" stroke="#57718a"/><text x="380.5" y="300" text-anchor="middle" font-size="15" font-weight="600" fill="#dce8f5">VERIFY CHANGES</text>
 <g transform="translate(775 43)">
 <rect width="366" height="264" rx="16" fill="#15263a" stroke="#3b526a"/>
-<text x="23" y="31" fill="#8fa7bf" font-size="12" font-weight="700" letter-spacing="2">MODULE WORKFLOW</text>
+<text x="23" y="31" fill="#8fa7bf" font-size="12" font-weight="700" letter-spacing="2">OPTIMIZATION FLOW</text>
 <path d="M25 48H341" stroke="#31465e"/>
 <g font-size="17" font-weight="600" fill="#e5edf7">
-<rect x="23" y="65" width="148" height="69" rx="10" fill="#20354b" stroke="#42617b"/><circle cx="45" cy="87" r="6" fill="#77aaff"/><text x="40" y="118">01 / Inspect</text>
+<rect x="23" y="65" width="148" height="69" rx="10" fill="#20354b" stroke="#42617b"/><circle cx="45" cy="87" r="6" fill="#77aaff"/><text x="40" y="118">01 / Detect</text>
 <rect x="195" y="65" width="148" height="69" rx="10" fill="#20354b" stroke="#42617b"/><circle cx="217" cy="87" r="6" fill="#77aaff"/><text x="212" y="118">02 / Backup</text>
-<rect x="23" y="153" width="148" height="69" rx="10" fill="#20354b" stroke="#42617b"/><circle cx="45" cy="175" r="6" fill="#50e3c2"/><text x="40" y="206">03 / Apply</text>
+<rect x="23" y="153" width="148" height="69" rx="10" fill="#20354b" stroke="#42617b"/><circle cx="45" cy="175" r="6" fill="#50e3c2"/><text x="40" y="206">03 / Optimize</text>
 <rect x="195" y="153" width="148" height="69" rx="10" fill="#173b3b" stroke="#50e3c2"/><path d="m211 175 5 5 9-11" fill="none" stroke="#50e3c2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><text x="212" y="206">04 / Verify</text>
 </g><path d="M171 99h24M269 134v10H97v9M171 188h24" fill="none" stroke="#70a4b8" stroke-width="1.5" stroke-dasharray="3 3"/>
 <text x="23" y="247" font-size="12" letter-spacing="1" fill="#8fa7bf">FEATURED MODULE  /  POSITRON</text></g></g></svg>

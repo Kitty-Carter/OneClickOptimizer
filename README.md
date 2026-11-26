@@ -1,7 +1,7 @@
-<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Your apps. Your workflow." width="100%"></p>
+<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Software optimization, one click away." width="100%"></p>
 
 <h1 align="center">OneClickOptimizer</h1>
-<p align="center"><strong>Featured module · Positron Optimizer</strong><br>Make every app work the way you want.</p>
+<p align="center"><strong>Featured module · Positron Optimizer</strong><br>Software optimization, one click away.</p>
 <p align="center">
   <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
@@ -20,7 +20,7 @@
 
 ---
 
-OneClickOptimizer is an offline, open-source toolkit for configuring Windows applications through small, independently maintained modules. It finds installed software, checks settings, backs up changes, applies a workflow preset and verifies the resulting configuration.
+OneClickOptimizer is an open-source, offline-first, modular one-click optimization toolkit for Windows applications. It turns curated optimization presets with documented rationale, applicability and risks into automated tools: detect the application, check compatibility, back up existing settings, apply the preset and verify the result. The focus is applying optimization presets, not cloning or syncing personal configurations. No universal speed improvement is promised.
 
 > [!NOTE]
 > **Development preview · v0.1.0-alpha.1** — Positron is the only implemented module. Choose a user ZIP under Assets on the Releases page. This is a preview, not a stable release. This is not a universal PC speed booster.
@@ -91,5 +91,5 @@ User-level, offline-first. No forced app shutdown, administrator privileges by d
 
 ---
 
-<p align="center">MIT licensed · Independent community project, not affiliated with Posit.<br>Made for people who care about their workflow.</p>
+<p align="center">MIT licensed · Independent community project, not affiliated with Posit.<br>Software optimization, one click away.</p>
 

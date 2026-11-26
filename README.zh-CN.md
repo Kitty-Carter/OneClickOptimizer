@@ -1,7 +1,7 @@
-<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Your apps. Your workflow." width="100%"></p>
+<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Software optimization, one click away." width="100%"></p>
 
 <h1 align="center">一键优化全家桶 · OneClickOptimizer</h1>
-<p align="center"><strong>首发模块 · Positron 一键优化工具</strong><br>让每个软件都按照你的使用习惯工作。</p>
+<p align="center"><strong>首发模块 · Positron 一键优化工具</strong><br>让软件优化，只需一键。</p>
 <p align="center">
   <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
@@ -20,7 +20,7 @@
 
 ---
 
-OneClickOptimizer 是一个开源、离线、按软件模块扩展的 Windows 配置工具。自动查找已安装的软件，检查现有设置，备份后应用优化方案，并回读验证配置。它不是万能电脑提速神器。
+OneClickOptimizer 是一个开源、离线、模块化的 Windows 软件一键优化工具集，旨在将有明确依据、适用条件与风险说明的优化方案转化为自动化工具。自动识别软件，检查兼容性，备份原有设置，一键应用优化方案并验证结果。核心是应用优化方案，而非克隆或同步个人配置；不承诺普遍提速。
 
 > [!NOTE]
 > **开发预览版 · v0.1.0-alpha.1** — 目前仅实现 Positron 模块。在 Releases 的 Assets 中选择用户版 ZIP；这是预览版，不是稳定版。
@@ -91,5 +91,5 @@ OneClickOptimizer/
 
 ---
 
-<p align="center">MIT 开源协议 · 独立社区项目，与 Posit 无官方隶属关系。<br>为每一位重视工作流的用户而设计。</p>
+<p align="center">MIT 开源协议 · 独立社区项目，与 Posit 无官方隶属关系。<br>让软件优化，只需一键。</p>
 

@@ -1,3 +1,5 @@
 # AI and contributor rules
 
 Read README, docs/MODULE-CONTRACT.md and the target module before editing. Do not add imaginary modules or claim tests ran when they did not. Never read or upload real personal settings, tokens, downloads, or logs to Git. Test with isolated fixtures and explicit paths. Never force-close an application or use administrator privileges by default. Preserve user data; report version-specific risks; make partial/failed outcomes explicit. Add tests for each change, document observed versus expected results, and preserve independent module usability. Do not silently make the repository public, alter remote history, or release as stable without evidence. Keep sources in main/modules, not permanent per-app branches.
+
+Project positioning: curated, documented one-click application optimization presets are the core product. Discovery, backups and verification are safeguards; personal configuration cloning/sync is not the primary purpose. Distinguish workflow preferences from measured performance improvements; document rationale, applicable versions, trade-offs and evidence for every preset. Do not claim universal speedups.
