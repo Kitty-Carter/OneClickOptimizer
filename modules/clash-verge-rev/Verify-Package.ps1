@@ -6,6 +6,8 @@ function Confirm-Package([string]$root,[bool]$required){
  $root=[IO.Path]::GetFullPath($root)
  $p=Join-Path $root 'package-manifest.json'
  if(!(Test-Path -LiteralPath $p -PathType Leaf)){if($required){throw 'Package manifest missing; re-extract the ZIP.'};return 'SOURCE_NO_MANIFEST'}
+ if((Get-Item -LiteralPath $p).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Manifest reparse point refused'}
+ if((Get-Item -LiteralPath $p).Length -gt 262144){throw 'Manifest too large'}
  $m=Get-Content -LiteralPath $p -Raw -Encoding UTF8|ConvertFrom-Json
  if($m.ref -notmatch '^[0-9a-f]{40}$' -or !$m.files){throw 'Invalid package manifest'}
  $entries=@($m.files.PSObject.Properties)
@@ -22,7 +24,7 @@ function Confirm-Package([string]$root,[bool]$required){
   while($item){if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse path refused'};$item=if($item -is [IO.FileInfo]){$item.Directory}else{$item.Parent}}
   if((Get-FileHash -LiteralPath $f -Algorithm SHA256).Hash -ne $x.Value){throw "Package hash mismatch: $n"}
  }
- if($required){foreach($n in @('Start-ClashOptimizer.ps1','Optimize-Clash.ps1','Verify-Package.ps1','bin/oco-node-quality.exe','presets/Merge.yaml','presets/Script.js')){if(!$seen.ContainsKey($n)){throw "Missing required manifest record: $n"}}}
+ if($required){foreach($n in @('Start.bat','Check.bat','Optimize.bat','Restore.bat','SelfTest.bat','Diagnose.bat','Inspect-Exit.bat','Start-ClashOptimizer.ps1','Optimize-Clash.ps1','Verify-Package.ps1','SelfTest.ps1','Diagnose-Clash.ps1','Inspect-Local.ps1','bin/oco-node-quality.exe','presets/Merge.yaml','presets/Script.js','README.md','LICENSE')){if(!$seen.ContainsKey($n)){throw "Missing required manifest record: $n"}}}
  "PACKAGE_INTEGRITY_OK $($entries.Count) files (not a publisher signature)"
 }
 try{
@@ -38,6 +40,8 @@ try{
    $bad=$false;try{$null=Confirm-Package $t $false}catch{$bad=$true};if(!$bad){throw 'Tampered fixture accepted'}
    $m.files=@{'../a.txt'=('a'*64)};[IO.File]::WriteAllText($mf,($m|ConvertTo-Json -Depth 4))
    $bad=$false;try{$null=Confirm-Package $t $false}catch{$bad=$true};if(!$bad){throw 'Traversal fixture accepted'}
+   Remove-Item -LiteralPath $mf
+   $bad=$false;try{$null=Confirm-Package $t $true}catch{$bad=$true};if(!$bad){throw 'Missing manifest accepted in package mode'}
    'PACKAGE_INTEGRITY_SELFTEST_OK';exit 0
   }finally{if(Test-Path -LiteralPath $t){Remove-Item -LiteralPath $t -Recurse -Force}}
  }

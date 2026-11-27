@@ -33,7 +33,7 @@ mod app {
         Value::String(k.into())
     }
     fn get<'a>(m: &'a Mapping, k: &str) -> Option<&'a Value> {
-        m.get(&key(k))
+        m.get(key(k))
     }
     fn safe_text(s: &str) -> String {
         s.chars().filter(|c| !c.is_control()).take(120).collect()
@@ -131,15 +131,29 @@ mod app {
         // Preserve subscription order so the numbered batches cover all eligible nodes.
         Ok(out)
     }
-    fn read_yaml(path: &Path) -> Result<Value, String> {
-        if fs::metadata(path)
-            .map_err(|_| "YAML file unavailable")?
-            .len()
-            > 8 * 1024 * 1024
-        {
+    fn read_bounded(path: &Path) -> Result<String, String> {
+        use std::io::Read;
+        let f = fs::File::open(path).map_err(|_| "YAML file unavailable")?;
+        let mut raw = Vec::new();
+        f.take(8 * 1024 * 1024 + 1)
+            .read_to_end(&mut raw)
+            .map_err(|_| "YAML read failed")?;
+        if raw.len() > 8 * 1024 * 1024 {
             return Err("YAML file too large".into());
         }
-        let text = fs::read_to_string(path).map_err(|_| "YAML UTF-8 read failed")?;
+        String::from_utf8(raw).map_err(|_| "YAML UTF-8 read failed".into())
+    }
+    fn read_yaml(path: &Path) -> Result<Value, String> {
+        let text = read_bounded(path)?;
+        serde_yaml_ng::from_str(text.trim_start_matches('\u{feff}'))
+            .map_err(|_| "YAML parse failed (details hidden)".into())
+    }
+    fn parse_merge(text: &str) -> Result<Value, String> {
+        // Conservative refusal: any anchor/alias indicator, even within text or comments.
+        // Not a general YAML lexer. This avoids silently expanding aliases in a user edit.
+        if text.contains(['&', '*']) {
+            return Err("Potential anchor/alias; missing-only merge refused".into());
+        }
         serde_yaml_ng::from_str(text.trim_start_matches('\u{feff}'))
             .map_err(|_| "YAML parse failed (details hidden)".into())
     }
@@ -269,6 +283,144 @@ mod app {
         ));
         result
     }
+    #[derive(Default, Debug, PartialEq, Eq)]
+    struct GraphAudit {
+        duplicates: usize,
+        missing_member: usize,
+        missing_provider: usize,
+        cycles: usize,
+        missing_simple_rule_target: usize,
+        unknown_rule_forms: usize,
+    }
+    fn audit_graph(v: &Value) -> Result<GraphAudit, String> {
+        if !v.is_mapping() || v.get("rules").and_then(Value::as_sequence).is_none() {
+            return Err("Runtime mapping or rule sequence missing".into());
+        }
+        let mut out = GraphAudit::default();
+        let mut known = HashSet::new();
+        let reserved = [
+            "DIRECT",
+            "REJECT",
+            "REJECT-DROP",
+            "PASS",
+            "COMPATIBLE",
+            "GLOBAL",
+        ];
+        let mut edges = std::collections::HashMap::<String, Vec<String>>::new();
+        for key in ["proxies", "proxy-groups"] {
+            if let Some(a) = v.get(key) {
+                let a = a.as_sequence().ok_or("Proxy/group list is not sequence")?;
+                if a.len() > 4096 {
+                    return Err("Graph exceeds audit bound".into());
+                }
+                for p in a {
+                    let n = p
+                        .get("name")
+                        .and_then(Value::as_str)
+                        .ok_or("Missing proxy/group name")?;
+                    if reserved.contains(&n) || !known.insert(n.to_owned()) {
+                        out.duplicates += 1;
+                    }
+                    if key == "proxy-groups" {
+                        edges.entry(n.to_owned()).or_default();
+                    }
+                }
+            }
+        }
+        let providers = v.get("proxy-providers").and_then(Value::as_mapping);
+        if let Some(gs) = v.get("proxy-groups").and_then(Value::as_sequence) {
+            for g in gs {
+                let n = g.get("name").and_then(Value::as_str).ok_or("Group name")?;
+                if let Some(ps) = g.get("proxies") {
+                    for member in ps.as_sequence().ok_or("Group proxies not sequence")? {
+                        let p = member.as_str().ok_or("Non-string member")?;
+                        if !known.contains(p) && !reserved.contains(&p) {
+                            out.missing_member += 1
+                        }
+                        if edges.contains_key(p) {
+                            edges.get_mut(n).unwrap().push(p.to_owned())
+                        }
+                    }
+                }
+                if let Some(ps) = g.get("use") {
+                    for member in ps.as_sequence().ok_or("Group use not sequence")? {
+                        if providers.is_none_or(|p| !p.contains_key(member)) {
+                            out.missing_provider += 1;
+                        }
+                    }
+                }
+            }
+        }
+        // Kahn topological elimination; residual vertices include cycles and dependants.
+        let mut indegree = edges
+            .keys()
+            .map(|n| (n.clone(), 0usize))
+            .collect::<std::collections::HashMap<_, _>>();
+        for es in edges.values() {
+            for e in es {
+                *indegree.get_mut(e).unwrap() += 1;
+            }
+        }
+        let mut q = indegree
+            .iter()
+            .filter(|(_, d)| **d == 0)
+            .map(|(n, _)| n.clone())
+            .collect::<Vec<_>>();
+        let mut removed = 0;
+        while let Some(n) = q.pop() {
+            removed += 1;
+            for e in &edges[&n] {
+                let d = indegree.get_mut(e).unwrap();
+                *d -= 1;
+                if *d == 0 {
+                    q.push(e.clone())
+                }
+            }
+        }
+        out.cycles = edges.len() - removed;
+        if let Some(r) = v.get("rules").and_then(Value::as_sequence) {
+            for line in r {
+                let Some(line) = line.as_str() else {
+                    out.unknown_rule_forms += 1;
+                    continue;
+                };
+                let p = line.split(',').map(str::trim).collect::<Vec<_>>();
+                let typ = p.first().copied().unwrap_or("");
+                let target = if typ == "MATCH" && p.len() == 2 {
+                    Some(p[1])
+                } else if [
+                    "DOMAIN",
+                    "DOMAIN-SUFFIX",
+                    "DOMAIN-KEYWORD",
+                    "GEOIP",
+                    "GEOSITE",
+                    "IP-CIDR",
+                    "IP-CIDR6",
+                    "SRC-IP-CIDR",
+                    "DST-PORT",
+                    "SRC-PORT",
+                    "PROCESS-NAME",
+                    "PROCESS-PATH",
+                    "RULE-SET",
+                ]
+                .contains(&typ)
+                    && (p.len() == 3 || (p.len() == 4 && p[3] == "no-resolve"))
+                {
+                    Some(p[2])
+                } else {
+                    None
+                };
+                match target {
+                    Some(t) if !known.contains(t) && !reserved.contains(&t) => {
+                        out.missing_simple_rule_target += 1
+                    }
+                    None => out.unknown_rule_forms += 1,
+                    _ => {}
+                }
+            }
+        }
+        Ok(out)
+    }
     fn merge_safe(v: &Value) -> Result<(Value, usize), String> {
         if !plain(v, 0) {
             return Err("Unsupported YAML structure".into());
@@ -277,20 +429,38 @@ mod app {
         let m = out
             .as_mapping_mut()
             .ok_or("Merge YAML root must be mapping")?;
+        // The upstream global merge lowercases top-level keys. Refuse aliases/case
+        // collisions instead of treating an explicit setting as missing.
+        let mut folded = HashSet::new();
+        for k in m.keys().filter_map(Value::as_str) {
+            let low = k.to_ascii_lowercase();
+            if !folded.insert(low.clone())
+                || (["tcp-concurrent", "profile"].contains(&low.as_str()) && low != k)
+            {
+                return Err("Case-ambiguous top-level key; merge refused".into());
+            }
+        }
         let mut count = 0;
-        if !m.contains_key(&key("tcp-concurrent")) {
+        if !m.contains_key(key("tcp-concurrent")) {
             m.insert(key("tcp-concurrent"), Value::Bool(true));
             count += 1;
         }
-        if !m.contains_key(&key("profile")) {
+        if !m.contains_key(key("profile")) {
             m.insert(key("profile"), Value::Mapping(Mapping::new()));
         }
         let profile = m
-            .get_mut(&key("profile"))
+            .get_mut(key("profile"))
             .and_then(Value::as_mapping_mut)
             .ok_or("Existing profile is not mapping; refused")?;
         for k in ["store-selected", "store-fake-ip"] {
-            if !profile.contains_key(&key(k)) {
+            if profile
+                .keys()
+                .filter_map(Value::as_str)
+                .any(|n| n.eq_ignore_ascii_case(k) && n != k)
+            {
+                return Err("Case-ambiguous profile key; merge refused".into());
+            }
+            if !profile.contains_key(key(k)) {
                 profile.insert(key(k), Value::Bool(true));
                 count += 1;
             }
@@ -389,7 +559,7 @@ mod app {
             used.insert(name.to_owned());
         }
         let old = m
-            .get_mut(&key("proxy-groups"))
+            .get_mut(key("proxy-groups"))
             .and_then(Value::as_sequence_mut)
             .ok_or("Runtime groups not a sequence")?;
         old.extend(new.iter().cloned());
@@ -605,7 +775,7 @@ mod app {
         {
             return Err("Explicit bundled core path required".into());
         }
-        let v = Command::new(&exe)
+        let v = Command::new(exe)
             .arg("-v")
             .output()
             .map_err(|_| "Core version unavailable")?;
@@ -627,7 +797,7 @@ mod app {
         // Full runtime copy is sensitive; never write it outside the protected temporary directory.
         let temp = private_temp()?;
         let cf = temp.0.join("candidate.yaml");
-        create_yaml(&cf, &candidate)?;
+        create_yaml(&cf, candidate)?;
         // Core -t validation only; copy existing GeoData files to avoid network lookup where available.
         for n in ["geoip.dat", "geosite.dat", "Country.mmdb", "ASN.mmdb"] {
             let f = config.parent().ok_or("Config parent")?.join(n);
@@ -652,7 +822,7 @@ mod app {
         }
         let job = Job::new()?;
         let mut proc = Core(
-            Command::new(&exe)
+            Command::new(exe)
                 .arg("-t")
                 .arg("-d")
                 .arg(&temp.0)
@@ -877,12 +1047,11 @@ mod app {
                 TCP_TABLE_OWNER_PID_LISTENER,
                 0,
             ) != 122
-                || bytes < 4
-                || bytes > 8 * 1024 * 1024
+                || !(4..=8 * 1024 * 1024).contains(&bytes)
             {
                 return false;
             }
-            let mut b = vec![0u64; (bytes as usize + 7) / 8];
+            let mut b = vec![0u64; (bytes as usize).div_ceil(8)];
             if GetExtendedTcpTable(
                 b.as_mut_ptr().cast(),
                 &mut bytes,
@@ -912,6 +1081,71 @@ mod app {
                 && selected[0].dwLocalAddr.to_ne_bytes() == [127, 0, 0, 1]
         }
     }
+    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+    static CANCELLED: AtomicBool = AtomicBool::new(false);
+    static RESERVED: AtomicU64 = AtomicU64::new(0);
+    static RECEIVED: AtomicU64 = AtomicU64::new(0);
+    static UNKNOWN_BYTES: AtomicU64 = AtomicU64::new(0);
+    static STOP_BUDGET: AtomicBool = AtomicBool::new(false);
+    static DEADLINE: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
+    const LIMIT: u64 = 36 * 1024 * 1024;
+    unsafe extern "system" fn console_cancel(code: u32) -> i32 {
+        if code == 0 || code == 1 {
+            CANCELLED.store(true, Ordering::Relaxed);
+            1
+        } else {
+            0
+        }
+    }
+    fn stopped() -> bool {
+        CANCELLED.load(Ordering::Relaxed)
+            || STOP_BUDGET.load(Ordering::Relaxed)
+            || DEADLINE
+                .get()
+                .is_some_and(|t| t.elapsed() >= Duration::from_secs(1800))
+    }
+    fn reserve(counter: &AtomicU64, cap: u64, limit: u64) -> bool {
+        let mut old = counter.load(Ordering::Acquire);
+        loop {
+            let Some(next) = old.checked_add(cap).filter(|v| *v <= limit) else {
+                return false;
+            };
+            match counter.compare_exchange_weak(old, next, Ordering::AcqRel, Ordering::Acquire) {
+                Ok(_) => return true,
+                Err(current) => old = current,
+            }
+        }
+    }
+    fn report_budget() {
+        println!(
+            "RESPONSE_BYTES measured={} reserved_upper_bound={} unknown_probe_count={} cap={}",
+            RECEIVED.load(Ordering::Relaxed),
+            RESERVED.load(Ordering::Relaxed),
+            UNKNOWN_BYTES.load(Ordering::Relaxed),
+            LIMIT
+        );
+    }
+    fn check_curl() -> Result<(), String> {
+        let o = Command::new(sys("curl.exe")?)
+            .arg("--version")
+            .output()
+            .map_err(|_| "curl version unavailable")?;
+        let t = String::from_utf8_lossy(&o.stdout);
+        let v = t.split_whitespace().nth(1).ok_or("curl version invalid")?;
+        let mut n = v.split('.');
+        let major = n
+            .next()
+            .and_then(|x| x.parse::<u32>().ok())
+            .ok_or("curl major version invalid")?;
+        let minor = n
+            .next()
+            .and_then(|x| x.parse::<u32>().ok())
+            .ok_or("curl minor version invalid")?;
+        if !o.status.success() || (major, minor) < (8, 4) {
+            return Err("curl >=8.4 required for streaming max-filesize; no probes sent".into());
+        }
+        Ok(())
+    }
     struct Probe {
         label: &'static str,
         ok: bool,
@@ -931,13 +1165,14 @@ mod app {
                 "HTTP_OR_SIZE_OTHER"
             };
             format!(
-                "  {}: {} HTTP {} / curl {} / {:.1} ms / {:.3} MB/s",
+                "  {}: {} HTTP {} / curl {} / {:.1} ms / {:.3} MB/s / {:.0} bytes",
                 self.label,
                 state,
                 self.http,
                 self.exit,
                 self.sec * 1000.0,
-                self.speed / 1e6
+                self.speed / 1e6,
+                self.bytes
             )
         }
     }
@@ -984,6 +1219,13 @@ mod app {
         cap: u64,
         exact: Option<u64>,
     ) -> Result<Probe, String> {
+        if stopped() {
+            return Err("CANCELLED_OR_BUDGET".into());
+        }
+        if !reserve(&RESERVED, cap, LIMIT) {
+            STOP_BUDGET.store(true, Ordering::Relaxed);
+            return Err("Response budget exhausted".into());
+        }
         let proxy = format!("http://127.0.0.1:{port}");
         let cap = cap.to_string();
         let mut c = Command::new(sys("curl.exe")?);
@@ -1018,15 +1260,35 @@ mod app {
         ] {
             c.env_remove(k);
         }
-        let o = c.output().map_err(|_| "curl unavailable")?;
-        parse_probe(
-            label,
-            &String::from_utf8_lossy(&o.stdout),
-            o.status.code().unwrap_or(-1),
-            expected,
-            exact,
-        )
+        let parsed = c
+            .output()
+            .map_err(|_| "curl unavailable".to_string())
+            .and_then(|o| {
+                parse_probe(
+                    label,
+                    &String::from_utf8_lossy(&o.stdout),
+                    o.status.code().unwrap_or(-1),
+                    expected,
+                    exact,
+                )
+            });
+        match parsed {
+            Ok(p) => {
+                RECEIVED.fetch_add(p.bytes as u64, Ordering::Relaxed);
+                if p.bytes > cap.parse::<u64>().unwrap_or(0) as f64 {
+                    STOP_BUDGET.store(true, Ordering::Relaxed);
+                    return Err("Response cap exceeded".into());
+                }
+                Ok(p)
+            }
+            Err(e) => {
+                UNKNOWN_BYTES.fetch_add(1, Ordering::Relaxed);
+                STOP_BUDGET.store(true, Ordering::Relaxed);
+                Err(e)
+            }
+        }
     }
+
     fn auto_screen(nodes: &[Node], exe: &Path) -> Vec<(usize, f64)> {
         use std::sync::atomic::{AtomicUsize, Ordering};
         let next = AtomicUsize::new(0);
@@ -1036,6 +1298,9 @@ mod app {
                 let next = &next;
                 let results = &results;
                 scope.spawn(move || loop {
+                    if stopped() {
+                        break;
+                    }
                     let i = next.fetch_add(1, Ordering::Relaxed);
                     if i >= nodes.len() {
                         break;
@@ -1070,6 +1335,9 @@ mod app {
         recommend: bool,
         recommend_download: bool,
     ) -> Result<Vec<Probe>, String> {
+        if stopped() {
+            return Err("CANCELLED_OR_BUDGET".into());
+        }
         let tmp = private_temp()?;
         let port = TcpListener::bind("127.0.0.1:0")
             .and_then(|s| s.local_addr())
@@ -1158,6 +1426,28 @@ mod app {
     }
     pub fn run() -> Result<i32, String> {
         let a: Vec<_> = env::args_os().skip(1).collect();
+        if a.first().is_some_and(|x| x == "--audit-runtime") {
+            if a.len() != 2 {
+                return Err("Usage: --audit-runtime runtime".into());
+            }
+            let g = audit_graph(&read_yaml(Path::new(&a[1]))?)?;
+            println!("GRAPH_AUDIT duplicates={} missing_members={} missing_providers={} cycle_or_dependent_vertices={} missing_simple_rule_targets={} unparsed_rule_forms={}",g.duplicates,g.missing_member,g.missing_provider,g.cycles,g.missing_simple_rule_target,g.unknown_rule_forms);
+            println!("Read-only structural audit; provider contents, complex rules and data plane not verified.");
+            return Ok(
+                if g.duplicates
+                    + g.missing_member
+                    + g.missing_provider
+                    + g.cycles
+                    + g.missing_simple_rule_target
+                    == 0
+                    && g.unknown_rule_forms == 0
+                {
+                    0
+                } else {
+                    2
+                },
+            );
+        }
         if a.first().is_some_and(|x| x == "--mixed-port") {
             if a.len() != 2 {
                 return Err("Usage: --mixed-port runtime".into());
@@ -1229,7 +1519,7 @@ mod app {
             if a.len() != 3 {
                 return Err("Usage: --merge-safe <source> <new destination>".into());
             }
-            let src = read_yaml(Path::new(&a[1]))?;
+            let src = parse_merge(&read_bounded(Path::new(&a[1]))?)?;
             let (v, n) = merge_safe(&src)?;
             if n == 0 {
                 println!("NO_CHANGE");
@@ -1316,6 +1606,19 @@ mod app {
             assert_eq!(runtime_checks(&cfg).iter().filter(|x| !x.1).count(), 1);
             cfg["rules"][0] = key("MATCH,DIRECT");
             assert_eq!(runtime_checks(&cfg).iter().filter(|x| !x.1).count(), 2);
+            for input in [
+                "foo: &x 1\nbar: *x",
+                "foo: 1\nfoo: 2",
+                "profile: !custom {}",
+            ] {
+                let value = parse_merge(input);
+                assert!(value.is_err() || merge_safe(&value.unwrap()).is_err());
+            }
+            let a = AtomicU64::new(0);
+            assert!(reserve(&a, 6, 10));
+            assert!(!reserve(&a, 5, 10));
+            assert!(reserve(&a, 4, 10));
+            assert_eq!(a.load(Ordering::Relaxed), 10);
             println!("NODE_QUALITY_SELFTEST_OK");
             return Ok(0);
         }
@@ -1327,14 +1630,7 @@ mod app {
         let config = PathBuf::from(&a[1]);
         let exe = PathBuf::from(&a[2]);
         check_core(&exe)?;
-        if fs::metadata(&config)
-            .map_err(|_| "Config unavailable")?
-            .len()
-            > 8 * 1024 * 1024
-        {
-            return Err("Config too large".into());
-        }
-        let s = fs::read_to_string(&config).map_err(|_| "Config read failed")?;
+        let s = read_bounded(&config)?;
         let runtime: Value = serde_yaml_ng::from_str(s.trim_start_matches('\u{feff}'))
             .map_err(|_| "YAML parse failed (details hidden)")?;
         let nodes = select(runtime.clone())?;
@@ -1342,6 +1638,14 @@ mod app {
             return Err("No eligible inline nodes".into());
         }
         let count = nodes.len();
+        let total = runtime
+            .get("proxies")
+            .and_then(Value::as_sequence)
+            .map_or(0, Vec::len);
+        println!(
+            "COVERAGE eligible={count} inline_total={total} excluded={}",
+            total.saturating_sub(count)
+        );
         let batches = count.div_ceil(6);
         if a[0] == "--list" {
             println!("{count} eligible inline nodes / {batches} batches; unsupported/chained/duplicate nodes are excluded.");
@@ -1412,7 +1716,7 @@ mod app {
         } else {
             println!("Batch {batch}/{batches}: {} nodes, two 204 requests each. Deep mode adds <=3 MiB per successful node; total response cap <=19 MiB.",nodes.len());
         }
-        if proposal.is_some() {
+        if proposal.is_some() && !auto {
             println!("Recommendation: 3 small requests + 2 x 1 MiB downloads per successful node, max 13.125 MiB response budget per batch; no service-specific or trust guarantee. Writes a private candidate file only.");
         }
         println!("Main TUN may affect path. No automatic route change.");
@@ -1424,10 +1728,19 @@ mod app {
                 .read_line(&mut input)
                 .map_err(|_| "Input failed")?;
             if !input.trim().eq_ignore_ascii_case("y") {
-                println!("Cancelled");
+                println!("CANCELLED: no probes sent");
                 return Ok(0);
             }
         }
+        check_curl()?;
+        if unsafe {
+            windows_sys::Win32::System::Console::SetConsoleCtrlHandler(Some(console_cancel), 1)
+        } == 0
+        {
+            return Err("Cancellation handler unavailable; no probes sent".into());
+        }
+        let _ = DEADLINE.set(Instant::now());
+        println!("Ctrl+C stops new probes; active requests finish within their timeout. 30-minute admission deadline.");
         println!(
             "Measurement start (Unix UTC seconds): {}",
             std::time::SystemTime::now()
@@ -1453,6 +1766,9 @@ mod app {
         let mut ranking = Vec::new();
         let mut evidence = Vec::new();
         for n in &nodes {
+            if stopped() {
+                break;
+            }
             println!(
                 "#{} {} [{}], configured skip-cert-verify: {:?}",
                 n.index, n.name, n.proto, n.skip
@@ -1526,12 +1842,19 @@ mod app {
                 Err(e) => println!("  UNAVAILABLE: {e}"),
             }
         }
+        report_budget();
+        if stopped() {
+            println!(
+                "PARTIAL: cancelled, budget exhausted or deadline reached; no proposal emitted"
+            );
+            return Ok(2);
+        }
         if let Some(path) = proposal {
             if evidence.is_empty() {
                 println!("No sufficiently available nodes, no proposal");
                 return Ok(2);
             }
-            if fs::read_to_string(&config).map_err(|_| "Runtime reread failed")? != s {
+            if read_bounded(&config)? != s {
                 return Err("Runtime changed during testing, no proposal".into());
             }
             let groups = policy_groups(&evidence);
@@ -1549,6 +1872,76 @@ mod app {
         }
         println!("{complete}/{} passed both small requests; {fully}/{} met requested test scope. No node switching, no IPPure batch, no persistent report.",nodes.len(),nodes.len());
         Ok(if fully == nodes.len() { 0 } else { 2 })
+    }
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        #[test]
+        fn cancellation_flag_stops_admission() {
+            assert!(!CANCELLED.load(Ordering::Relaxed));
+            assert_eq!(unsafe { console_cancel(0) }, 1);
+            assert!(stopped());
+            CANCELLED.store(false, Ordering::Relaxed);
+        }
+        #[test]
+        fn budget_is_atomic_and_bounded() {
+            let n = AtomicU64::new(0);
+            thread::scope(|s| {
+                for _ in 0..8 {
+                    s.spawn(|| {
+                        for _ in 0..100 {
+                            reserve(&n, 1, 123);
+                        }
+                    });
+                }
+            });
+            assert_eq!(n.load(Ordering::Relaxed), 123);
+        }
+        #[test]
+        fn duplicate_and_alias_refusal() {
+            assert!(parse_merge("x: 1\nx: 2").is_err());
+            assert!(parse_merge("x: &a 1\ny: *a").is_err());
+        }
+        #[test]
+        fn case_alias_is_refused() {
+            for t in [
+                "TCP-Concurrent: false",
+                "Profile: {}",
+                "x: 1\nX: 2",
+                "profile: {Store-Selected: false}",
+            ] {
+                assert!(merge_safe(&parse_merge(t).unwrap()).is_err());
+            }
+        }
+        #[test]
+        fn graph_mutations_detected() {
+            let v:Value=serde_yaml_ng::from_str("proxies: [{name: p}]\nproxy-groups: [{name: a, proxies: [b, missing], use: [unknown]}, {name: b, proxies: [a]}]\nrules: ['DOMAIN,example.test,not-found','MATCH,a']").unwrap();
+            let a = audit_graph(&v).unwrap();
+            assert_eq!(
+                (
+                    a.missing_member,
+                    a.missing_provider,
+                    a.cycles,
+                    a.missing_simple_rule_target
+                ),
+                (1, 1, 2, 1)
+            );
+        }
+        #[test]
+        fn merge_preserves_explicit() {
+            let v = parse_merge(
+                "profile: {store-selected: false}\ntcp-concurrent: false\nextra: [1,2]",
+            )
+            .unwrap();
+            let (m, n) = merge_safe(&v).unwrap();
+            assert_eq!(n, 1);
+            assert_eq!(m["extra"], v["extra"]);
+            assert_eq!(m["tcp-concurrent"], v["tcp-concurrent"]);
+            assert_eq!(
+                m["profile"]["store-selected"],
+                v["profile"]["store-selected"]
+            );
+        }
     }
 }
 fn main() {

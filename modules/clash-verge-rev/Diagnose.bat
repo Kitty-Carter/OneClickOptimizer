@@ -1,5 +1,5 @@
 @echo off
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Diagnose-Clash.ps1" -Rounds 2
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Start-ClashOptimizer.ps1" -RequirePackage -Action Diagnose
 set "rc=%errorlevel%"
 pause
 exit /b %rc%

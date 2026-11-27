@@ -43,6 +43,16 @@ jobs:
             powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path .\modules\clash-verge-rev $file) -SelfTest
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
           }
+      - name: Rust formatting, unit tests and warning-free lint
+        shell: powershell
+        working-directory: modules/clash-verge-rev/rust-node-quality
+        run: |
+          cargo fmt --check
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo test --locked -j 1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo clippy --locked --all-targets -j 1 -- -D warnings
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Build exact-commit standalone ZIP and test extraction
         shell: powershell
         run: |
@@ -56,7 +66,7 @@ jobs:
             powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x $file) -SelfTest
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
           }
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x 'SelfTest.ps1')
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x 'SelfTest.ps1') -RequirePackage
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           & (Join-Path $x 'bin\oco-node-quality.exe') --selftest
           if ($LASTEXITCODE) { exit $LASTEXITCODE }

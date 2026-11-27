@@ -58,3 +58,10 @@
 - Durable write journal, target-bound backup identity, process mutex, actual child-exit fault injection and exact recovery.
 - Package integrity checks, generated runtime verification, strict explicit path and YAML port parsing, guided recovery list.
 - One-click safe fallback for custom YAML, preserves explicit fields and custom JS; experimental policy write removed from regular menu. No TUN/MTU changes or monitoring.
+
+## Clash 1.3.0-rc.1 | Integrated acceptance candidate
+
+- Resume recovery from original transaction after repeated interruption; per-file progress and version evidence; locked-file, before/after/restore child-exit fixtures.
+- Strict missing-only YAML case/anchor refusal, graph audit, bounded scan reservation/observed bytes/cancellation/admission deadline; Rust tests and warning-free lint in CI.
+- Required manifest for release BAT entries; discovered-port diagnostics and explicit path checks; policy writing disabled until native lifecycle passes.
+- Retain core DNS/TCP presets: limited comparisons do not demonstrate adoption threshold. Candidate only, no live network switch or stable claim.

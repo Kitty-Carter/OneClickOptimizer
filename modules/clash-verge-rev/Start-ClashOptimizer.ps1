@@ -1,15 +1,18 @@
 ﻿[CmdletBinding()]
-param([switch]$SelfTest,[switch]$DiscoverOnly,[ValidateSet("Menu","Check","Optimize","Restore")][string]$Action="Menu",[string]$AppPath,[string]$DataPath,[ValidateRange(1,65535)][int]$Port=7897)
+param([switch]$SelfTest,[switch]$DiscoverOnly,[switch]$RequirePackage,[ValidateSet("Menu","Check","Optimize","Restore","Diagnose","InspectExit")][string]$Action="Menu",[string]$AppPath,[string]$DataPath,[ValidateRange(1,65535)][int]$Port=7897)
 $ErrorActionPreference='Stop'
 $explicitPort=$PSBoundParameters.ContainsKey('Port')
 function Say([string]$s){Write-Host $s}
+function Plain-Path([string]$p){
+ try{$i=Get-Item -LiteralPath $p -ErrorAction Stop;while($i){if($i.Attributes -band [IO.FileAttributes]::ReparsePoint){return $false};$i=if($i -is [IO.FileInfo]){$i.Directory}else{$i.Parent}};return $true}catch{return $false}
+}
 function Valid-App([string]$p){
  if(!$p){return $false}
- try{return ([IO.Path]::GetFileName($p) -ieq 'clash-verge.exe' -and (Test-Path -LiteralPath $p -PathType Leaf) -and (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $p) 'verge-mihomo.exe') -PathType Leaf))}catch{return $false}
+ try{return ([IO.Path]::GetFileName($p) -ieq 'clash-verge.exe' -and (Test-Path -LiteralPath $p -PathType Leaf) -and (Test-Path -LiteralPath (Join-Path (Split-Path -Parent $p) 'verge-mihomo.exe') -PathType Leaf) -and (Plain-Path $p) -and (Plain-Path (Join-Path (Split-Path -Parent $p) 'verge-mihomo.exe')))}catch{return $false}
 }
 function Valid-Data([string]$p){
  if(!$p){return $false}
- try{if((Get-Item -LiteralPath $p -ErrorAction Stop).Attributes -band [IO.FileAttributes]::ReparsePoint){return $false};foreach($n in @('verge.yaml','profiles.yaml','profiles\Merge.yaml','profiles\Script.js')){if(!(Test-Path -LiteralPath (Join-Path $p $n) -PathType Leaf)){return $false}};return $true}catch{return $false}
+ try{if(!(Plain-Path $p)){return $false};foreach($n in @('verge.yaml','profiles.yaml','profiles\Merge.yaml','profiles\Script.js')){if(!(Test-Path -LiteralPath (Join-Path $p $n) -PathType Leaf) -or !(Plain-Path (Join-Path $p $n))){return $false}};return $true}catch{return $false}
 }
 function Extract-Exe([string]$s){
  if(!$s){return}
@@ -108,7 +111,7 @@ function Run-Node([string[]]$args1){
  Say "节点检测退出码：$LASTEXITCODE"
 }
 try{
- if(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'package-manifest.json')){
+ if($RequirePackage -or (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'package-manifest.json'))){
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Verify-Package.ps1') -Required
   if($LASTEXITCODE){throw '软件包校验失败，请重新下载并完整解压。'}
  }
@@ -122,6 +125,11 @@ try{
    $expected=Join-Path $a 'clash-verge.exe'
    if(!(Valid-App $expected) -or !(Valid-Data $d) -or (@(Search-Apps @($tmp)) -notcontains $expected)){throw 'Custom-path fixture failed'}
    if((Extract-Exe '"D:\Custom Apps\Clash\clash-verge.exe",0') -ne 'D:\Custom Apps\Clash\clash-verge.exe'){throw 'Registry parsing failed'}
+   $other=Join-Path $tmp 'second install'
+   New-Item -ItemType Directory -Path $other|Out-Null
+   foreach($n in @('clash-verge.exe','verge-mihomo.exe')){[IO.File]::WriteAllText((Join-Path $other $n),'fixture')}
+   if(@(Search-Apps @($tmp)).Count -ne 2){throw 'Multiple candidates not enumerated'}
+   if(Valid-Data (Join-Path $tmp 'missing')){throw 'Invalid data path accepted'}
    Remove-Item -LiteralPath (Join-Path $a 'verge-mihomo.exe')
    if(Valid-App $expected){throw 'Missing core fixture failed'}
    'DISCOVERY_SELFTEST_OK';exit 0
@@ -139,6 +147,16 @@ try{
  if(!$explicitPort){Read-Port}
  Say "客户端：$AppPath";Say "数据目录：$DataPath";Say "混合代理端口：$Port（0表示未确认）"
  if($DiscoverOnly){exit 0}
+ if($Action -in @('Diagnose','InspectExit')){
+  if($Port -eq 0){throw 'Proxy port unknown; use Start.bat and set P.'}
+  $args1=@('-Port',[string]$Port)
+  if($Action -eq 'InspectExit'){$args1+='-ExitPrompt'}else{
+   if((Read-Host 'Send six bounded HTTPS probes? [Y/N]') -notmatch '^[Yy]$'){Write-Host 'CANCELLED';exit 1}
+   $args1+=@('-Rounds','2')
+  }
+  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Diagnose-Clash.ps1') @args1
+  exit $LASTEXITCODE
+ }
  if($Action -ne 'Menu'){
   $argv=@('-DataPath',$DataPath,'-AppPath',$AppPath)
   if($Action -eq 'Check'){$argv+='-CheckOnly'}
@@ -155,6 +173,7 @@ try{
   Say '5 当前网络诊断 / 6 IPPure 单次出口检查 / 7 本地代理状态'
   Say '8 自定义配置安全补全（仅补3个缺失字段） / 9 实测策略组候选'
   Say 'V 验证生成配置 / R 查找本机恢复记录（策略组写入暂不开放）'
+  Say 'G 生成配置结构审计（只读）'
   Say 'A 重新选择客户端与数据目录 / P 自定义代理端口 / 0 退出'
   $choice=(Read-Host '请选择').Trim()
   try{
@@ -207,6 +226,7 @@ try{
       }catch{Write-Warning '未完成策略组候选生成';throw}
      }
     }
+    'G'{Run-Node @('--audit-runtime',(Join-Path $DataPath 'clash-verge.yaml'))}
     'V'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-Verify')}
     'R'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-RecoveryList')}
     'A'{$oldApp=$script:AppPath;$oldData=$script:DataPath;$script:AppPath=(Read-Host '请输入实际 clash-verge.exe 完整路径').Trim().Trim([char]34);$script:DataPath=(Read-Host '请输入实际数据目录').Trim().Trim([char]34);if(!(Valid-App $script:AppPath) -or !(Valid-Data $script:DataPath)){$script:AppPath=$oldApp;$script:DataPath=$oldData;throw '路径无效，保留原选择'};Locate;Say "客户端：$AppPath";Say "数据目录：$DataPath";Read-Port;Say "混合代理端口：$Port"}
