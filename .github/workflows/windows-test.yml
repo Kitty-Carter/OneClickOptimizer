@@ -41,3 +41,6 @@ jobs:
           cargo test --locked --manifest-path modules/clash-verge-rev/native-monitor/Cargo.toml
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           cargo build --release --locked --manifest-path modules/clash-verge-rev/native-monitor/Cargo.toml
+      - name: Test network diagnostic parser and decision logic (offline)
+        shell: powershell
+        run: powershell.exe -NoProfile -File .\modules\clash-verge-rev\Diagnose-Clash.ps1 -SelfTest

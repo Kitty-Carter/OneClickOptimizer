@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "clash-verge-rev",
   "name": "Clash Verge Rev",
-  "version": "0.3.0-alpha.2",
+  "version": "0.3.0-alpha.3",
   "status": "preview",
   "entry": "Optimize-Clash.ps1",
   "modes": [

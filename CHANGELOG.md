@@ -32,3 +32,9 @@
 - Existing configuration presets preserved; verified version-specific DNS field against upstream source.
 
 - Backup/manifest preflight, final readback, rollback readback and fixture-only injected partial-write failure test.
+
+## Clash 0.3.0-alpha.3
+
+- On-demand current-path HTTPS diagnostics, loopback listener guard, bounded requests and explicit HTTP/transport classification.
+- Optional one-shot IPPure current exit lookup; no background polling, node ranking or raw IP persistence.
+- Preserve MIT companion boundary; upstream GPLv3 native client integration remains separate.

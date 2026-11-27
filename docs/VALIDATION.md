@@ -25,3 +25,7 @@ Rust 1.100.0 x86_64-pc-windows-msvc linker probe passed; windows-sys 0.61.2 pinn
 ## Clash 0.3.0-alpha.2 (2026-11-27)
 
 Rust 8/8 unit tests; live PDH disk counters and PID-matched process fallback after warm-up; source-build native GUI 16.12 s / 9 observations, max sampled WS 26.77 MiB, private 10.87 MiB, normalized process CPU 0.04%, normal close. Isolated optimizer injected failure after first write: original bytes recovered; normal restore and refusal regression passed; current extensions match, no live write. Source audit of Mihomo v1.19.33 RawDNS and assignment confirms fallback-lazy-query is supported. No DNS leak or new network-speed claim. GPU and native client integration pending; same-feature long-run validation pending.
+
+## Clash 0.3.0-alpha.3 (2026-11-27)
+
+Offline diagnostic fixtures passed (expected response, HTTP other, transport error, nonfinite/malformed input, median, valid and malformed optional exit fields). Real Windows loopback port 7897 owned by verge-mihomo; two rounds 6/6 expected responses, successful median total elapsed Cloudflare 602.4 ms, GitHub 964.8 ms, ChatGPT 1453.3 ms. Not individual-node latency, throughput or authenticated app access. No IPPure live query performed; no network settings changed. Upstream v2.5.10 package.json declares pnpm@12.16.1, GPLv3 license confirmed.

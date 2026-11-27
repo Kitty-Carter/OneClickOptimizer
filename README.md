@@ -11,9 +11,9 @@
 | Positron | Clash Verge Rev |
 | :---: | :---: |
 | **Research workflow & configuration** | **Network configuration & PC monitoring** |
-| v0.1.0-alpha.1 · Windows preview | v0.3.0-alpha.2 · Windows preview |
-| [![Download Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![Download Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.3.0-alpha.2/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
-| [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [Module guide](modules/positron) | [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.3.0-alpha.2) · [Module guide](modules/clash-verge-rev) |
+| v0.1.0-alpha.1 · Windows preview | v0.3.0-alpha.3 · Windows preview |
+| [![Download Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![Download Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.3.0-alpha.3/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
+| [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [Module guide](modules/positron) | [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.3.0-alpha.3) · [Module guide](modules/clash-verge-rev) |
 | Seven workflow settings, checks and backups | DNS, rules, AI routing preset; separate read-only NIC and hardware monitor |
 
 ## Get started
