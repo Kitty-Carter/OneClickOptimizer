@@ -16,3 +16,13 @@
 - 官方参考：https://github.com/clash-verge-rev/clash-verge-rev/tree/v2.5.10 和 https://github.com/MetaCubeX/mihomo/tree/v1.19.33
 
 退出码：0 检查/自检完成或文件已匹配（不等于生效）；1 失败或取消；2 自定义、版本不匹配或已写入但需人工激活验证。
+
+## 第二批：网络与电脑监视预览
+
+双击 `Monitor.bat`（Windows PowerShell 5.1 + .NET Framework/WinForms，无需安装 Python、Node 或额外驱动）。窗口按默认 2 秒刷新；可勾选 Always on top 置顶。关闭窗口即退出采样。也可运行 `powershell.exe -NoProfile -STA -File Monitor-Clash.ps1 -Sample` 进行一次只读采样，`-SelfTest` 运行计数差分测试，`-SmokeTest` 自动关闭测试窗口。`-IntervalMs` 支持 1000–10000 ms。
+
+显示整机 CPU、内存、Mihomo 进程工作集及 CPU，以及各网卡状态、链路速率、独立收发速率和本次会话内累计量。物理网卡依据 Get-NetAdapter -Physical 的 GUID 识别；Mihomo/Meta/Tunnel 仅标为隧道候选；其余不推断。连接断开、计数回退、采样间隔过长时速率标为不可用，避免虚假尖峰。物理网卡与 TUN 不相加；Mihomo 进程资源不是内核堆内存，网卡流量也不是订阅计费流量。当前累计量只覆盖有效采样区间，不写历史文件。
+
+**功能边界：** 这是按需启动的只读辅助窗口，不是已经集成进 Clash 的新原生页面；尚无任务栏嵌入、Mihomo 私有接口流量、按进程流量、GPU/温度、持久化历史、自动诊断或 IPPure 自动检测。无网络请求、不读取订阅或控制密钥、不开放端口、不安装自启动、不改变代理设置。未验证 30 MiB 内存或 1% CPU 预算、多机兼容性、实际 GUI 像素布局。参考 TrafficMonitor 的显示思路，代码为本模块新编写，并未复制其源码。后续原生集成需独立构建并验收。
+
+已执行：Windows PS5.1 编译、5 项速率差分断言、实机系统采样、窗口多次采样后自动退出冒烟测试；这些不代表长时间性能验收。

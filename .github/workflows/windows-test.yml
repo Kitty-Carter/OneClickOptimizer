@@ -29,3 +29,9 @@ jobs:
       - name: Test Clash in isolated fixtures
         shell: powershell
         run: powershell.exe -NoProfile -File .\modules\clash-verge-rev\Optimize-Clash.ps1 -SelfTest
+      - name: Test Clash preset behavior
+        shell: powershell
+        run: node .\modules\clash-verge-rev\tests\test-presets.js
+      - name: Compile and test network monitor
+        shell: powershell
+        run: powershell.exe -NoProfile -STA -File .\modules\clash-verge-rev\Monitor-Clash.ps1 -SelfTest

@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Software optimization, one click away." width="100%"></p>
 
 <h1 align="center">OneClickOptimizer</h1>
-<p align="center"><strong>Featured module · Positron Optimizer</strong><br>Software optimization, one click away.</p>
+<p align="center"><strong>Windows application optimization · Positron & Clash Verge Rev</strong><br>Software optimization, one click away.</p>
 <p align="center">
   <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
@@ -23,7 +23,7 @@
 OneClickOptimizer is an open-source, offline-first, modular one-click optimization toolkit for Windows applications. It turns curated optimization presets with documented rationale, applicability and risks into automated tools: detect the application, check compatibility, back up existing settings, apply the preset and verify the result. The focus is applying optimization presets, not cloning or syncing personal configurations. No universal speed improvement is promised.
 
 > [!NOTE]
-> **Development preview · v0.1.0-alpha.1** — Positron has an existing downloadable preview; Clash Verge Rev is a new source preview. Choose a user ZIP under Assets on the Releases page. This is a preview, not a stable release. This is not a universal PC speed booster.
+> **Development preview · v0.1.0-alpha.1** — Positron has an existing downloadable preview; Clash Verge Rev has configuration and monitoring source previews. Choose the Positron ZIP under Assets or follow the Clash module guide. This is a preview, not a stable release. This is not a universal PC speed booster.
 
 ## Featured module | Positron Optimizer
 
@@ -47,12 +47,13 @@ Choose the corresponding asset on the release page. The existing release package
 | Application | Status | What it does |
 | :--- | :--- | :--- |
 | **[Positron](modules/positron)** | Preview · 7 setting goals | Quarto outline, editor rulers and zoom, R package installer, notebook execution and diagnostics. |
+| **[Clash Verge Rev](modules/clash-verge-rev)** | Source preview · batch 2 | Guarded configuration presets; read-only network and system monitoring companion. |
 
 [Read the Positron guide →](modules/positron/使用说明.md)
 
 ## Clash Verge Rev
 
-[Open the Clash module and instructions](modules/clash-verge-rev). Use Check.bat first; existing custom extensions are preserved. [Source ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) contains both modules. No Clash release asset yet.
+[Open the Clash module and instructions](modules/clash-verge-rev). Use Check.bat first; existing custom extensions are preserved. [Source ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) contains both modules. Run `Monitor.bat` to view live per-adapter traffic and system resources. This is an optional Windows companion, not a modified Clash client. No Clash release asset yet.
 
 ## Get started
 
@@ -72,7 +73,8 @@ For the full toolkit ZIP, run `启动全家桶.bat` and select Positron → chec
 OneClickOptimizer/
 ├── core/                 Module catalog and dispatch
 ├── modules/
-│   └── positron/         First independent module
+│   ├── positron/         First independent module
+│   └── clash-verge-rev/  Configuration and monitoring preview
 ├── tests/                Isolated Windows tests
 ├── docs/                 Contracts, evidence and roadmap
 └── 启动全家桶.bat         One-click entry
@@ -82,7 +84,7 @@ OneClickOptimizer/
 | :--- | :--- |
 | **0.1.0-alpha.1 · now** | Positron preview, module catalog, Windows validation workflow |
 | 0.1.0 | Recovery, regression tests, release packaging |
-| 0.2.0–0.3.0 | Shared infrastructure and a second real module |
+| 0.2.0–0.3.0 | Shared infrastructure, Clash source preview, broader validation |
 | 1.0.0 | Broader compatibility and verified recovery before stable release |
 
 [Full roadmap](docs/ROADMAP.md) · [Validation evidence](docs/VALIDATION.md) · [Windows CI](https://github.com/Kitty-Carter/OneClickOptimizer/actions)

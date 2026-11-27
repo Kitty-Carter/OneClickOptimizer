@@ -1,0 +1,20 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const src=fs.readFileSync(path.join(__dirname,'../presets/Script.js'),'utf8');
+function run(c){const ctx={};vm.createContext(ctx);vm.runInContext(src,ctx);const a=JSON.parse(JSON.stringify(ctx.main(JSON.parse(JSON.stringify(c)))));assert.deepEqual(JSON.parse(JSON.stringify(ctx.main(JSON.parse(JSON.stringify(a))))),a);return a}
+const ai='AI-\u56fa\u5b9a\u51fa\u53e3';
+let r=run({proxies:[{name:'node-a',type:'ss'},{name:'local',type:'direct'}],rules:['DOMAIN,example.test,DIRECT','DOMAIN,example.test,REJECT','DOMAIN,example.test,DIRECT','MATCH,DIRECT'],dns:{'enhanced-mode':'fake-ip','nameserver-policy':{'geosite:cn':['existing']}}});
+assert.deepEqual(r['proxy-groups'][0].proxies,['node-a']);
+assert.equal(r['proxy-groups'][0]['empty-fallback'],'REJECT');
+assert.equal(r.rules.filter(x=>x==='DOMAIN,example.test,DIRECT').length,1);
+assert.ok(r.rules.includes('DOMAIN,example.test,REJECT'));
+assert.deepEqual(r.dns['nameserver-policy']['geosite:cn'],['existing']);
+assert.ok(r.rules.includes('DOMAIN-SUFFIX,chatgpt.com,'+ai));
+r=run({'proxy-providers':{'example-provider':{}},'proxy-groups':[{name:'Auto',type:'url-test',interval:0,url:'https://example.test/check'},{name:'Fallback',type:'fallback',interval:9000}]});
+assert.deepEqual(r['proxy-groups'][0].use,['example-provider']);
+assert.equal(r['proxy-groups'][0]['empty-fallback'],'REJECT');
+assert.equal(r['proxy-groups'][1].interval,0);
+assert.equal(r['proxy-groups'][1].url,'https://example.test/check');
+assert.equal(r['proxy-groups'][2].interval,1800);
+assert.equal(r['proxy-groups'][2].url,'https://cp.cloudflare.com/generate_204');
+r=run({proxies:[{name:'direct',type:'direct'}],rules:['MATCH,DIRECT']});assert.deepEqual(r.rules,['MATCH,DIRECT']);
+console.log('CLASH_PRESET_TEST_OK');

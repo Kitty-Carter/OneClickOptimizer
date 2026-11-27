@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Software optimization, one click away." width="100%"></p>
 
 <h1 align="center">一键优化全家桶 · OneClickOptimizer</h1>
-<p align="center"><strong>首发模块 · Positron 一键优化工具</strong><br>让软件优化，只需一键。</p>
+<p align="center"><strong>Windows 软件优化 · Positron 与 Clash Verge Rev</strong><br>让软件优化，只需一键。</p>
 <p align="center">
   <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
@@ -23,7 +23,7 @@
 OneClickOptimizer 是一个开源、离线、模块化的 Windows 软件一键优化工具集，旨在将有明确依据、适用条件与风险说明的优化方案转化为自动化工具。自动识别软件，检查兼容性，备份原有设置，一键应用优化方案并验证结果。核心是应用优化方案，而非克隆或同步个人配置；不承诺普遍提速。
 
 > [!NOTE]
-> **开发预览版 · v0.1.0-alpha.1** — 目前仅实现 Positron 模块。在 Releases 的 Assets 中选择用户版 ZIP；这是预览版，不是稳定版。
+> **开发预览版 · v0.1.0-alpha.1** — Positron 已提供独立下载；Clash Verge Rev 已增加配置及监视源码预览。Positron 在 Releases 的 Assets 中选择 ZIP，Clash 请查看模块说明；这是预览版，不是稳定版。
 
 ## 首发模块 | Positron 一键优化工具
 
@@ -34,7 +34,7 @@ OneClickOptimizer 是一个开源、离线、模块化的 Windows 软件一键�
 | **[Positron-OneClick-Optimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | 推荐 · Positron 用户，解压后双击 BAT |
 | [OneClickOptimizer-Toolkit-Preview-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | 想体验统一入口和未来模块扩展的用户 |
 
-在 Release 的 Assets 中选择对应文件；两者都属于开发预览版，目前包含相同的 Positron 优化功能。
+在 Release 的 Assets 中选择对应文件；现有两个发布附件均仅包含 Positron；Clash 模块暂以源码提供。
 
 ## 为什么选择它？
 
@@ -47,8 +47,13 @@ OneClickOptimizer 是一个开源、离线、模块化的 Windows 软件一键�
 | 软件 | 状态 | 优化内容 |
 | :--- | :--- | :--- |
 | **[Positron](modules/positron)** | 预览版 · 7 项配置目标 | Quarto 大纲、编辑器标尺与字体缩放、R 包安装器、Notebook 会话与诊断。 |
+| **[Clash Verge Rev](modules/clash-verge-rev)** | 源码预览 · 第二批 | 安全配置预设、网络与电脑实时监视（独立辅助窗口）。 |
 
 [查看 Positron 使用指南 →](modules/positron/使用说明.md)
+
+## Clash Verge Rev 模块
+
+[查看模块与使用说明](modules/clash-verge-rev)。[下载主分支源码 ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip)，完整解压后进入 `modules/clash-verge-rev`，先运行 `Check.bat`；需要监视时运行 `Monitor.bat`。监视为独立只读 Windows 窗口，尚未集成进官方 Clash 客户端。暂未提供 Clash 独立 Release 附件。
 
 ## 快速开始
 
@@ -68,7 +73,8 @@ OneClickOptimizer 是一个开源、离线、模块化的 Windows 软件一键�
 OneClickOptimizer/
 ├── core/                 模块目录与调度
 ├── modules/
-│   └── positron/         首个独立模块
+│   ├── positron/         首个独立模块
+│   └── clash-verge-rev/  配置与监视预览
 ├── tests/                Windows 隔离测试
 ├── docs/                 规范、验证记录、路线图
 └── 启动全家桶.bat         一键启动入口
@@ -78,7 +84,7 @@ OneClickOptimizer/
 | :--- | :--- |
 | **0.1.0-alpha.1 · 当前** | Positron 预览模块、模块目录及 Windows 验证流程 |
 | 0.1.0 | 恢复功能、回归测试、发布打包 |
-| 0.2.0–0.3.0 | 公共基础设施与第二个真正的软件模块 |
+| 0.2.0–0.3.0 | 公共基础设施、Clash 源码预览及更广泛的验收 |
 | 1.0.0 | 完成更多环境兼容性和恢复验证后发布稳定版 |
 
 [完整路线图](docs/ROADMAP.md) · [验证记录](docs/VALIDATION.md) · [自动化测试](https://github.com/Kitty-Carter/OneClickOptimizer/actions)
