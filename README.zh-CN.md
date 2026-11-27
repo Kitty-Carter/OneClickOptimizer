@@ -11,9 +11,9 @@
 | Positron | Clash Verge Rev |
 | :---: | :---: |
 | **配置与科研工作流优化** | **网络配置与电脑监视** |
-| v0.1.0-alpha.1 · Windows 预览 | v0.3.0-alpha.1 · Windows 预览 |
-| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.3.0-alpha.1/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
-| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.3.0-alpha.1) · [模块指南](modules/clash-verge-rev) |
+| v0.1.0-alpha.1 · Windows 预览 | v0.3.0-alpha.2 · Windows 预览 |
+| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.3.0-alpha.2/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
+| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.3.0-alpha.2) · [模块指南](modules/clash-verge-rev) |
 | 七项工作流配置、检查及备份 | DNS、规则、AI 固定出口预设；独立只读网速与硬件监视 |
 
 ## 快速开始

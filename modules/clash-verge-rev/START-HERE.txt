@@ -1,4 +1,4 @@
-Clash Verge Rev | OCO preview 0.3.0-alpha.1
+Clash Verge Rev | OCO preview 0.3.0-alpha.2
 1. Read README.md (Chinese guide + hardware notes).
 2. Check.bat: read-only configuration check.
 3. Optimize.bat: default extensions only, explicit confirmation; activate in Clash manually.
@@ -8,3 +8,5 @@ Clash Verge Rev | OCO preview 0.3.0-alpha.1
 Preview: no native integration or universal speed guarantee.
 
 Native-Monitor.bat: x64 Rust basic monitoring; close window to stop. Monitor.bat: richer C# hardware window. Restore.bat: guarded two-file OCO backup restore; close Clash first. Read README.md for limits.
+
+Native-Monitor-Lite.bat: Rust monitoring without disk counters. Native-Monitor.bat also shows disk and Mihomo process counters when readable; use Monitor.bat for GPU. See latest section in README.md.

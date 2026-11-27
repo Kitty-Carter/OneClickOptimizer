@@ -21,3 +21,7 @@ Windows PS5.1: rate assertions 7/7; live NIC/system and optional disk/GPU/batter
 ## Clash 0.3.0-alpha.1 (2026-11-27)
 
 Rust 1.100.0 x86_64-pc-windows-msvc linker probe passed; windows-sys 0.61.2 pinned. Seven Rust counter/CPU tests passed, live two-sample NIC/CPU/RAM/battery and GUI three-tick smoke passed. Short native window process observation: 20.55 MiB max observed WS, 4.28 MiB private, CPU 0% measured over 2.03 s; only basic feature set, no long-run or equivalent hardware comparison. Optimizer fixture restore passed, corrupted backup and later edits refused; live check found both extension bytes already matching, no live writes. Bundled core reports 1.19.33. PowerShell 5.1 array handling initially failed then fixed. No new claim of DNS/TUN speed or leak protection.
+
+## Clash 0.3.0-alpha.2 (2026-11-27)
+
+Rust 8/8 unit tests; live PDH disk counters and PID-matched process fallback after warm-up; source-build native GUI 16.12 s / 9 observations, max sampled WS 26.77 MiB, private 10.87 MiB, normalized process CPU 0.04%, normal close. Isolated optimizer injected failure after first write: original bytes recovered; normal restore and refusal regression passed; current extensions match, no live write. Source audit of Mihomo v1.19.33 RawDNS and assignment confirms fallback-lazy-query is supported. No DNS leak or new network-speed claim. GPU and native client integration pending; same-feature long-run validation pending.

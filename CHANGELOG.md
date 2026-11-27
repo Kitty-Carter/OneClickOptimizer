@@ -24,3 +24,11 @@
 - Rust/Win32 native basic monitor, separate from richer hardware window.
 - Exact bundled core gate and guarded two-extension restore, fixture round-trip and refusal tests.
 - Closed-loop acceptance rules; retain historical releases and native integration as future work.
+
+## Clash 0.3.0-alpha.2
+
+- Native session traffic, background sampling, process resources and optional PDH disk counters; explicit Lite entry.
+- PID-validated public process counter fallback, without privilege escalation.
+- Existing configuration presets preserved; verified version-specific DNS field against upstream source.
+
+- Backup/manifest preflight, final readback, rollback readback and fixture-only injected partial-write failure test.

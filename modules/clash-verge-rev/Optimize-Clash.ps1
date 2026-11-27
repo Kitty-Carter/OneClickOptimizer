@@ -43,7 +43,8 @@ function RestorePlan([string]$dir,[string]$backup){
   [pscustomobject]@{Name=$n;Path=$p;Old=$old;New=$new;State=$state}
  }
 }
-function Apply($plan,[string]$root,[switch]$Fixture){
+function Apply($plan,[string]$root,[switch]$Fixture,[switch]$InjectFailure){
+ if($InjectFailure -and !$Fixture){throw "Fault injection restricted to fixture"}
  if(@($plan|Where-Object State -eq 'custom').Count){throw 'Custom extensions detected. Refusing to overwrite.'}
  $change=@($plan|Where-Object State -eq 'ready')
  if(!$change.Count){return}
@@ -51,9 +52,20 @@ function Apply($plan,[string]$root,[switch]$Fixture){
  if(!$root){throw 'Backup root required'}
  $b=Join-Path $root ('clash-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N'))
  New-Item -ItemType Directory -Path $b -Force|Out-Null
- foreach($x in $plan){[IO.File]::WriteAllBytes((Join-Path $b $x.Name),$x.Old)}
+ foreach($x in $plan){
+  $bp=Join-Path $b $x.Name
+  [IO.File]::WriteAllBytes($bp,$x.Old)
+  if((Hash (ReadBytes $bp)) -ne (Hash $x.Old)){throw 'Backup readback failed before write'}
+ }
  $manifest=@($plan|ForEach-Object{[pscustomobject]@{name=$_.Name;before=(Hash $_.Old);after=(Hash $_.New)}})
  [IO.File]::WriteAllText((Join-Path $b 'manifest.json'),(ConvertTo-Json -InputObject $manifest -Depth 3),$utf8)
+ # Check the complete backup manifest and both source files before mutation.
+ $backManifest=ConvertFrom-Json -InputObject (Get-Content -LiteralPath (Join-Path $b 'manifest.json') -Raw -Encoding UTF8)
+ foreach($x in $plan){
+  $r=@($backManifest|Where-Object name -ceq $x.Name)
+  if($r.Count -ne 1 -or $r[0].before -ne (Hash $x.Old) -or $r[0].after -ne (Hash $x.New)){throw 'Backup manifest readback failed'}
+  if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){throw 'Concurrent edit before transaction'}
+ }
  $done=@()
  try{
   foreach($x in $change){
@@ -65,13 +77,15 @@ function Apply($plan,[string]$root,[switch]$Fixture){
     $done+=,$x
     Remove-Item -LiteralPath ($tmp+".swap") -Force
     if((Hash (ReadBytes $x.Path)) -ne (Hash $x.New)){throw 'Readback failed'}
+    if($InjectFailure -and $done.Count -eq 1){throw 'Injected fixture failure after first write'}
    }finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
   }
+  foreach($x in $plan){if((Hash (ReadBytes $x.Path)) -ne (Hash $x.New)){throw "Final transaction readback failed"}}
  }catch{
   foreach($x in $done){
    if((Hash (ReadBytes $x.Path)) -eq (Hash $x.New)){
     $tmp=$x.Path+'.restore-'+[guid]::NewGuid().ToString('N')
-    try{[IO.File]::WriteAllBytes($tmp,$x.Old);[IO.File]::Replace($tmp,$x.Path,($tmp+".swap")); Remove-Item -LiteralPath ($tmp+".swap") -Force}finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
+    try{[IO.File]::WriteAllBytes($tmp,$x.Old);[IO.File]::Replace($tmp,$x.Path,($tmp+".swap")); Remove-Item -LiteralPath ($tmp+".swap") -Force; if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){throw "Rollback readback failed: $($x.Name); recovery backup: $b"}}finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
    }
   }
   Write-Host "Recovery backup: $b";throw
@@ -87,6 +101,11 @@ try{
    [IO.File]::WriteAllText((Join-Path $t 'Merge.yaml'),'# default',$utf8)
    [IO.File]::WriteAllText((Join-Path $t 'Script.js'),'function main(config) { return config; }',$utf8)
    $p=@(Plan $t);if(@($p|Where-Object State -eq 'ready').Count -ne 2){throw 'plan failed'}
+   $injected=$false
+   try{$null=Apply $p (Join-Path $t 'backup') -Fixture -InjectFailure}catch{if($_.Exception.Message -match 'Injected fixture failure'){$injected=$true}else{throw}}
+   if(!$injected){throw 'Fault injection did not fire'}
+   foreach($x in $p){if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){throw 'Partial write rollback failed'}}
+   Write-Host 'CLASH_PARTIAL_WRITE_ROLLBACK_OK'
    $backup=Apply $p (Join-Path $t 'backup') -Fixture
    $restore=@(RestorePlan $t $backup)
    if(@($restore|Where-Object State -eq 'ready').Count -ne 2){throw 'restore plan failed'}
