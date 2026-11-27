@@ -1,6 +1,7 @@
 ﻿[CmdletBinding()]
-param([string]$Root=$PSScriptRoot,[switch]$SelfTest,[switch]$Required)
+param([string]$Root,[switch]$SelfTest,[switch]$Required)
 $ErrorActionPreference='Stop'
+if(!$Root){$Root=$PSScriptRoot}
 function Confirm-Package([string]$root,[bool]$required){
  $root=[IO.Path]::GetFullPath($root)
  $p=Join-Path $root 'package-manifest.json'
