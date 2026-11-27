@@ -12,3 +12,9 @@
 
 - Batch 1: guarded extension staging, exact original backup, config presets, catalog integration; no automatic live activation.
 - Batch 2: optional read-only Windows monitor (per-adapter counters, CPU/RAM and Mihomo process resources), rate calculation tests and preset behavior tests. No native client fork, stable release or automatic monitoring installation.
+
+## Clash 0.2.0-alpha.2
+
+- Equal module navigation and standalone preview packaging.
+- Optional disk, GPU busiest-engine and battery counters; background sampling, monotonic network timestamps, Lite launcher.
+- Expanded rate assertions; unavailable hardware remains N/A.

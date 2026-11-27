@@ -26,3 +26,9 @@
 **功能边界：** 这是按需启动的只读辅助窗口，不是已经集成进 Clash 的新原生页面；尚无任务栏嵌入、Mihomo 私有接口流量、按进程流量、GPU/温度、持久化历史、自动诊断或 IPPure 自动检测。无网络请求、不读取订阅或控制密钥、不开放端口、不安装自启动、不改变代理设置。未验证 30 MiB 内存或 1% CPU 预算、多机兼容性、实际 GUI 像素布局。参考 TrafficMonitor 的显示思路，代码为本模块新编写，并未复制其源码。后续原生集成需独立构建并验收。
 
 已执行：Windows PS5.1 编译、5 项速率差分断言、实机系统采样、窗口多次采样后自动退出冒烟测试；这些不代表长时间性能验收。
+
+## 0.2.0-alpha.2: hardware and usability review
+
+Monitor.bat now includes optional Windows hardware counters: physical disk non-idle percentage (100 minus _Total idle time), disk read/write rates, GPU busiest-engine estimate (aggregate per engine, then max; not total GPU utilization), and battery when available. Unavailable data = N/A. Hardware sampling runs at most once per 15 seconds and may take longer; base sampling defaults to 2 seconds, no overlapping jobs. Monitor-Lite.bat skips optional hardware queries. Counter timestamps are taken before hardware queries. No temperature, per-process network, daily history, taskbar or native Clash integration yet. No continuous external queries. Close the window to exit. See validation notes for limits.
+
+Validation: Windows 11 / PS 5.1, 7 rate assertions passed; live sample returned disk, GPU and battery data; 20-second GUI smoke exited 0. Short hardware-mode process observation: max working set 155.9 MiB, private 115.8 MiB, process CPU normalized to whole machine 0.129% over ~8 seconds. These are not full system overhead or long-run guarantees; the 30 MiB budget is not met. Temperature, taskbar integration, native client integration, per-process traffic, and long-run acceptance remain pending.

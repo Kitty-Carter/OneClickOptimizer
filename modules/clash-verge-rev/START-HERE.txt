@@ -1,1 +1,8 @@
-Windows preview. Read README.md. Check.bat first. Optimize.bat only for default extensions. No subscriptions included. Keep backups local.
+Clash Verge Rev | OCO preview 0.2.0-alpha.2
+1. Read README.md (Chinese guide + hardware notes).
+2. Check.bat: read-only configuration check.
+3. Optimize.bat: default extensions only, explicit confirmation; activate in Clash manually.
+4. Monitor.bat: optional read-only network and hardware window.
+5. Monitor-Lite.bat: skip extra hardware counters. Close window to stop.
+6. SelfTest.bat: configuration fixture test. Backups stay local.
+Preview: no native integration or universal speed guarantee.

@@ -1,101 +1,29 @@
-<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer — Software optimization, one click away." width="100%"></p>
+<p align="center"><img src="docs/assets/banner.svg" alt="OneClickOptimizer" width="100%"></p>
 
-<h1 align="center">一键优化全家桶 · OneClickOptimizer</h1>
-<p align="center"><strong>Windows 软件优化 · Positron 与 Clash Verge Rev</strong><br>让软件优化，只需一键。</p>
-<p align="center">
-  <a href="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml"><img alt="Windows validation" src="https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml/badge.svg?branch=main"></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-50c9ae?style=flat-square"></a>
-  <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%2F%2011-3776bd?style=flat-square">
-  <img alt="PowerShell 5.1" src="https://img.shields.io/badge/PowerShell-5.1-526f9b?style=flat-square">
-  <img alt="Development preview" src="https://img.shields.io/badge/version-0.1.0--alpha.1-c58c43?style=flat-square">
-</p>
+# OneClickOptimizer · 一键优化全家桶
 
-<p align="center">
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip"><img src="docs/assets/download-positron.svg" alt="下载 Positron 一键优化工具（ZIP）" width="300"></a><br>
-<a href="https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1"><strong>查看发布版及附件</strong></a> &nbsp;·&nbsp;
-<a href="modules/positron">Positron 模块</a> &nbsp;·&nbsp;
-<a href="docs/ROADMAP.md">路线图</a> &nbsp;·&nbsp;
-<a href="README.md">English</a>
-</p>
+**让软件优化，只需一键。** 面向 Windows 的开源模块化优化工具。检测、备份、应用、验证；不承诺普遍提速。
 
----
+[English](README.md) · [全部发布](https://github.com/Kitty-Carter/OneClickOptimizer/releases) · [Windows CI](https://github.com/Kitty-Carter/OneClickOptimizer/actions/workflows/windows-test.yml) · [MIT](LICENSE)
 
-OneClickOptimizer 是一个开源、离线、模块化的 Windows 软件一键优化工具集，旨在将有明确依据、适用条件与风险说明的优化方案转化为自动化工具。自动识别软件，检查兼容性，备份原有设置，一键应用优化方案并验证结果。核心是应用优化方案，而非克隆或同步个人配置；不承诺普遍提速。
+## 选择要优化的软件
 
-> [!NOTE]
-> **开发预览版 · v0.1.0-alpha.1** — Positron 已提供独立下载；Clash Verge Rev 已增加配置及监视源码预览。Positron 在 Releases 的 Assets 中选择 ZIP，Clash 请查看模块说明；这是预览版，不是稳定版。
-
-## 首发模块 | Positron 一键优化工具
-
-**只想优化 Positron？请选择独立版，无需下载全家桶。**
-
-| 下载选项 | 适合谁 |
-| :--- | :--- |
-| **[Positron-OneClick-Optimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | 推荐 · Positron 用户，解压后双击 BAT |
-| [OneClickOptimizer-Toolkit-Preview-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | 想体验统一入口和未来模块扩展的用户 |
-
-在 Release 的 Assets 中选择对应文件；现有两个发布附件均仅包含 Positron；Clash 模块暂以源码提供。
-
-## 为什么选择它？
-
-| 自动定位与检查 | 先备份，再优化 | 验证与扩展 |
-| :--- | :--- | :--- |
-| 识别常见和自定义安装目录，先检查现状再决定是否修改。 | 写入前备份，尽量保留其他个性化配置。 | 回读验证、明确部分兼容情况；各模块独立维护与测试。 |
-
-## 已支持的软件
-
-| 软件 | 状态 | 优化内容 |
-| :--- | :--- | :--- |
-| **[Positron](modules/positron)** | 预览版 · 7 项配置目标 | Quarto 大纲、编辑器标尺与字体缩放、R 包安装器、Notebook 会话与诊断。 |
-| **[Clash Verge Rev](modules/clash-verge-rev)** | 源码预览 · 第二批 | 安全配置预设、网络与电脑实时监视（独立辅助窗口）。 |
-
-[查看 Positron 使用指南 →](modules/positron/使用说明.md)
-
-## Clash Verge Rev 模块
-
-[查看模块与使用说明](modules/clash-verge-rev)。[下载主分支源码 ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip)，完整解压后进入 `modules/clash-verge-rev`，先运行 `Check.bat`；需要监视时运行 `Monitor.bat`。监视为独立只读 Windows 窗口，尚未集成进官方 Clash 客户端。暂未提供 Clash 独立 Release 附件。
+| Positron | Clash Verge Rev |
+| :---: | :---: |
+| **配置与科研工作流优化** | **网络配置与电脑监视** |
+| v0.1.0-alpha.1 · Windows 预览 | v0.2.0-alpha.2 · Windows 预览 |
+| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.2.0-alpha.2/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
+| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.2.0-alpha.2) · [模块指南](modules/clash-verge-rev) |
+| 七项工作流配置、检查及备份 | DNS、规则、AI 固定出口预设；独立只读网速与硬件监视 |
 
 ## 快速开始
 
-1. 打开 [Positron 发布页](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)，下载独立版 `Positron-OneClick-Optimizer-Windows.zip`（推荐），完整解压。需要已安装 Positron、Windows 10/11 和 Windows PowerShell 5.1。
-2. 双击 **`仅检查不修改.bat`**，核对安装位置和计划修改的设置。
-3. 保存工作，双击 **`一键优化.bat`**，确认 Y 后执行。
-4. 自行重启 Positron。恢复方法见包内使用说明。
+下载所需模块的独立 ZIP，完整解压，阅读 START-HERE.txt。先检查，再确认优化；不要覆盖自定义配置。Clash 的 Monitor.bat 可单独打开监视窗口，Monitor-Lite.bat 跳过额外硬件查询。现有 Positron 旧全家桶附件仅含 Positron，不含 Clash。
 
-如果选择全家桶包，则双击 `启动全家桶.bat`，选择 Positron → 仅检查 → 优化。开发者可另行[下载主分支源码](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip)。
+## 安全与兼容性
 
-> [!IMPORTANT]
-> 七项配置是特定工作流偏好，并非所有用户的最佳设置。关闭 R 诊断可能隐藏有效警告；base 安装器不保证提速。工作区及 Profile 可能覆盖用户设置。极端自定义路径需要手动指定。自动回退与跨电脑兼容性验收尚未完成。
+预览版，并非稳定版。Positron 的部分工作流偏好可能隐藏有用诊断。Clash 的 DNS 预设面向中国大陆网络，自动写入仅允许默认扩展和验证过的应用版本，需要用户重新激活订阅并检查网络。监视器是独立窗口，不是已修改的官方客户端；GPU 显示最繁忙引擎估计，温度等未实现。仅本地采集，不上传私人配置，不自动安装软件、不强制关闭应用。多机及完整恢复验收尚未完成。
 
-## 模块化工程
+[源码 ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) · [模块契约](docs/MODULE-CONTRACT.md) · [路线图](docs/ROADMAP.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md)
 
-```text
-OneClickOptimizer/
-├── core/                 模块目录与调度
-├── modules/
-│   ├── positron/         首个独立模块
-│   └── clash-verge-rev/  配置与监视预览
-├── tests/                Windows 隔离测试
-├── docs/                 规范、验证记录、路线图
-└── 启动全家桶.bat         一键启动入口
-```
-
-| 里程碑 | 目标 |
-| :--- | :--- |
-| **0.1.0-alpha.1 · 当前** | Positron 预览模块、模块目录及 Windows 验证流程 |
-| 0.1.0 | 恢复功能、回归测试、发布打包 |
-| 0.2.0–0.3.0 | 公共基础设施、Clash 源码预览及更广泛的验收 |
-| 1.0.0 | 完成更多环境兼容性和恢复验证后发布稳定版 |
-
-[完整路线图](docs/ROADMAP.md) · [验证记录](docs/VALIDATION.md) · [自动化测试](https://github.com/Kitty-Carter/OneClickOptimizer/actions)
-
-## 安全与贡献
-
-默认以普通用户权限运行、优先离线。不强制关闭软件、不更改系统安全策略、不收集凭据。配置回读不等同于界面验收或性能基准测试。
-
-[模块接口规范](docs/MODULE-CONTRACT.md) · [贡献指南](CONTRIBUTING.md) · [AI 维护规则](AGENTS.md) · [更新记录](CHANGELOG.md)
-
----
-
-<p align="center">MIT 开源协议 · 独立社区项目，与 Posit 无官方隶属关系。<br>让软件优化，只需一键。</p>
-
+MIT · 独立社区项目，与 Positron 或 Clash Verge Rev 官方无隶属关系。
