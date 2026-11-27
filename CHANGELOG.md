@@ -65,3 +65,7 @@
 - Strict missing-only YAML case/anchor refusal, graph audit, bounded scan reservation/observed bytes/cancellation/admission deadline; Rust tests and warning-free lint in CI.
 - Required manifest for release BAT entries; discovered-port diagnostics and explicit path checks; policy writing disabled until native lifecycle passes.
 - Retain core DNS/TCP presets: limited comparisons do not demonstrate adoption threshold. Candidate only, no live network switch or stable claim.
+
+## Clash 1.3.1-rc.1 | Minimal maintenance candidate
+
+- All production optimization paths now use missing-only merge; no blanket DNS or AI script overwrite. Remove policy candidate generation from menu, keep prior recovery and read-only diagnostics. Verification is structural, not a 19-field legacy preset requirement. No migration of existing user extensions, no speed claim, no stable tag.

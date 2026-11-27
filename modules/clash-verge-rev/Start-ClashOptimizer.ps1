@@ -160,26 +160,26 @@ try{
  if($Action -ne 'Menu'){
   $argv=@('-DataPath',$DataPath,'-AppPath',$AppPath)
   if($Action -eq 'Check'){$argv+='-CheckOnly'}
-  if($Action -eq 'Optimize'){$argv+='-ConservativeAuto'}
+  if($Action -eq 'Optimize'){$argv+='-AddMissing'}
   if($Action -eq 'Restore'){$argv+='-RestorePrompt'}
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Optimize-Clash.ps1') @argv
   exit $LASTEXITCODE
  }
- Say '首次建议使用 1 检查；已有优化预设一致时不会重复写入。'
+ Say '首次建议使用 1 检查；已有字段不会重复写入。'
  do{
   Say '';Say '========== Clash Verge Rev 一键优化 · 精简版 =========='
   Say '1 检查配置 / 2 安全应用优化 / 3 恢复原配置'
   Say '4 独立节点检测（分批，可选深入下载及 ChatGPT HTTP 测试）'
   Say '5 当前网络诊断 / 6 IPPure 单次出口检查 / 7 本地代理状态'
-  Say '8 自定义配置安全补全（仅补3个缺失字段） / 9 实测策略组候选'
-  Say 'V 验证生成配置 / R 查找本机恢复记录（策略组写入暂不开放）'
+  Say '2 仅补全3个缺失字段；不覆盖 DNS、AI 或脚本'
+  Say 'V 生成配置结构检查 / R 查找本机恢复记录'
   Say 'G 生成配置结构审计（只读）'
   Say 'A 重新选择客户端与数据目录 / P 自定义代理端口 / 0 退出'
   $choice=(Read-Host '请选择').Trim()
   try{
    switch($choice){
     '1'{Run-PS 'Optimize-Clash.ps1' @('-CheckOnly','-DataPath',$DataPath)}
-    '2'{Say '先正常退出 Clash；工具不会强制退出或覆盖自定义值；自定义 YAML 仅补安全缺失项。';Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath,'-ConservativeAuto')}
+    '2'{Say '先正常退出 Clash；仅补全全局 Merge 缺失的3个字段，不改 DNS 或脚本。';Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath,'-AddMissing')}
     '3'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-RestorePrompt')}
     '4'{
      $core=Join-Path (Split-Path -Parent $AppPath) 'verge-mihomo.exe'
@@ -198,34 +198,6 @@ try{
     '5'{if($Port -eq 0){throw '未确认代理端口，请先使用 P 指定。'};if((Read-Host '发送6次HTTPS请求？[Y/N]') -match '^[Yy]$'){Run-PS 'Diagnose-Clash.ps1' @('-Port',[string]$Port,'-Rounds','2')}}
     '6'{if($Port -eq 0){throw '未确认代理端口，请先使用 P 指定。'};Run-PS 'Diagnose-Clash.ps1' @('-Port',[string]$Port,'-ExitPrompt')}
     '7'{if($Port -eq 0){throw '未确认代理端口，请先使用 P 指定。'};Run-PS 'Inspect-Local.ps1' @('-Port',[string]$Port)}
-    '8'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath,'-AddMissing')}
-    '9'{
-     $core=Join-Path (Split-Path -Parent $AppPath) 'verge-mihomo.exe'
-     $cfg=Join-Path $DataPath 'clash-verge.yaml'
-     Run-Node @('--list',$cfg,$core)
-     if($LASTEXITCODE){throw '无法识别节点，停止操作。'}
-     $n=0;$choice9=(Read-Host '输入 AUTO 全量初筛后深测前6；或批次号（3次204+2次1MiB）；0取消').Trim()
-     $auto=($choice9 -ieq 'AUTO')
-     if($auto -or ([int]::TryParse($choice9,[ref]$n) -and $n -gt 0)){
-      $folder=Join-Path $env:LOCALAPPDATA ('OCO-Policy-'+[guid]::NewGuid().ToString('N'))
-      New-Item -ItemType Directory -Path $folder|Out-Null
-      try{
-       $acl=New-Object Security.AccessControl.DirectorySecurity
-       $acl.SetAccessRuleProtection($true,$false)
-       $me=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-       foreach($sid in @($me,'S-1-5-18','S-1-5-32-544')){
-        $id=New-Object Security.Principal.SecurityIdentifier($sid)
-        $acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($id,'FullControl','ContainerInherit,ObjectInherit','None','Allow')))
-       }
-       Set-Acl -LiteralPath $folder -AclObject $acl
-       $file=Join-Path $folder 'policy-groups.yaml'
-       $argv=@('--scan',$cfg,$core,'--recommend',$file);if($auto){$argv+='--auto'}else{$argv+=@('--batch',[string]$n)}
-       Run-Node $argv
-       if(Test-Path -LiteralPath $file -PathType Leaf){Say "候选片段（不包含认证参数）：$file";Say '候选仅供审查与实验，不可直接覆盖全局 Merge.yaml。未修改正式策略组。'}
-       else{Remove-Item -LiteralPath $folder -Force}
-      }catch{Write-Warning '未完成策略组候选生成';throw}
-     }
-    }
     'G'{Run-Node @('--audit-runtime',(Join-Path $DataPath 'clash-verge.yaml'))}
     'V'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-Verify')}
     'R'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-RecoveryList')}

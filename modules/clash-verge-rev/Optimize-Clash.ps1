@@ -465,7 +465,7 @@ try{
  if($Verify){
   $runtime=Join-Path $DataPath 'clash-verge.yaml';Assert-PlainPath $runtime
   $exe=Join-Path $PSScriptRoot 'bin\oco-node-quality.exe'
-  & $exe --verify-runtime $runtime
+  Write-Host 'Minimal mode: structural audit only; DNS and AI settings are deliberately not forced.'; & $exe --audit-runtime $runtime
   exit $LASTEXITCODE
  }
  if(!$CheckOnly){$lock=Enter-TargetLock $dir}
@@ -493,7 +493,7 @@ try{
   $scriptRow.New=[byte[]](SafePolicy $DataPath $AppPath $PolicyFrom $PolicyParent)
   if((Hash (ReadBytes $runtimePath)) -ne $runtimeHash){throw 'Runtime changed during policy preparation'}
   $scriptRow.State=if((Hash $scriptRow.New) -eq (Hash $scriptRow.Old)){'same'}else{'ready'}
- }else{$p=@(Plan $dir -MissingOnly:$AddMissing)}
+ }else{$AddMissing=$true;$p=@(Plan $dir -MissingOnly)}
  $autoReduced=$false
  if($ConservativeAuto -and !$CheckOnly -and !$PolicyFrom -and !$AddMissing -and @($p|Where-Object State -eq 'custom').Count){
   Write-Warning 'Custom extensions detected. Full preset is not safe; only missing allowlisted keys can be added. Existing Script.js stays unchanged.'
@@ -503,7 +503,7 @@ try{
  if(@($p|Where-Object State -eq 'custom').Count){Write-Warning 'Custom extensions preserved. Review guide and integrate manually.';exit 2}
  if($CheckOnly){exit 0}
  if(@($p|Where-Object State -eq 'ready').Count -eq 0){
-  if($autoReduced -or $AddMissing){Write-Host 'NO_CHANGE: no missing allowlisted keys; existing custom configuration preserved. Full preset not verified.';if($autoReduced){exit 2};exit 0}
+  if($autoReduced -or $AddMissing){Write-Host 'NO_CHANGE: no missing allowlisted keys; existing custom configuration preserved. No DNS, AI or Script.js overwrite.';if($autoReduced){exit 2};exit 0}
   Write-Host 'NO_CHANGE: preset files match. Use V to verify generated config; live network not checked.';exit 0
  }
  if($PolicyFrom){

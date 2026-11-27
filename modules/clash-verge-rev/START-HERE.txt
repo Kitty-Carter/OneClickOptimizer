@@ -1,2 +1,2 @@
-Clash Verge Rev Optimizer v1.3.0-rc.1 | Integrated acceptance candidate
-Extract ALL files. Double-click Start.bat. 1 check, 2 guarded optimize, 3 restore, V generated config check, G structural audit, R recovery list. Save work, close Clash normally before write. Start and reactivate manually; verify afterward. Policy writes disabled. No monitoring or automatic AI switching. Read README.md. Candidate only, not universal stable.
+Clash Verge Rev Optimizer v1.3.1-rc.1 | Minimal candidate
+Extract ALL files. Start.bat: 1 check, 2 add only three absent global Merge keys, 3 restore, 5 diagnose, V/G structural audit, R recovery list. No DNS/AI/Script.js overwrite or download policy generation. Existing working configurations need no repeated apply. Close Clash normally before writes; reactivate manually and verify. No monitoring. Candidate only.

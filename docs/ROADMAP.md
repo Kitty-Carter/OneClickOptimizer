@@ -14,3 +14,6 @@ Clash focused preview 1.1: configuration optimization, safe missing-only merge, 
 Clash 1.2 stability candidate: transaction recovery, package integrity, strict path/port detection and generated runtime checks. Remaining stable gates: actual fresh install apply/activation/restore on additional PC, selected policy group expiry/reload, independent live disconnect recovery. TUN and adaptive DNS remain out of default scope.
 
 Clash 1.3 integrated acceptance candidate: resume-safe restore, bounded measurements, structural graph audit, strict merge and required package manifest. Remaining stable gates: real nonempty native apply/activate/restore, independently verified network recovery, second real Windows environment and three full cycles/30 min. Do not mark v2.0 stable without these. No monitor or automatic AI route switch.
+
+
+Clash: freeze feature expansion after the minimal maintenance candidate. Only concrete defect fixes if needed; no further speculative optimization.
