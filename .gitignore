@@ -13,3 +13,6 @@
 **/Positron-settings-backup-*/
 **/report.txt
 **/personal/
+
+/modules/clash-verge-rev/bin/
+/modules/clash-verge-rev/rust-node-quality/target/

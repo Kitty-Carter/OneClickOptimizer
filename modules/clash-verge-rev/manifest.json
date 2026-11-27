@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "id": "clash-verge-rev",
   "name": "Clash Verge Rev",
-  "version": "0.4.0-alpha.1",
+  "version": "1.1.0-alpha.1",
   "status": "preview",
-  "entry": "Optimize-Clash.ps1",
+  "entry": "Invoke-OcoClash.ps1",
   "modes": [
     "check",
     "selftest",

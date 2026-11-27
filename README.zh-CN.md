@@ -10,19 +10,19 @@
 
 | Positron | Clash Verge Rev |
 | :---: | :---: |
-| **配置与科研工作流优化** | **网络配置与电脑监视** |
-| v0.1.0-alpha.1 · Windows 预览 | v0.4.0-alpha.1 · Windows 预览 |
-| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.4.0-alpha.1/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
-| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.4.0-alpha.1) · [模块指南](modules/clash-verge-rev) |
-| 七项工作流配置、检查及备份 | DNS、规则、AI 固定出口预设；独立只读网速与硬件监视 |
+| **科研工作流配置优化** | **Clash 配置与节点优化** |
+| v0.1.0-alpha.1 · Windows 预览 | v1.1.0-alpha.1 · Windows 预览 |
+| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v1.1.0-alpha.1/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
+| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v1.1.0-alpha.1) · [模块指南](modules/clash-verge-rev) |
+| 七项工作流配置、检查及备份 | DNS、规则、安全合并、实测节点和原生策略组 |
 
 ## 快速开始
 
-下载所需模块的独立 ZIP，完整解压，阅读 START-HERE.txt。先检查，再确认优化；不要覆盖自定义配置。Clash 入口 Start.bat 提供中文菜单，统一检查、优化、恢复、原生监视、当前路径诊断与有限节点初筛。现有 Positron 旧全家桶附件仅含 Positron，不含 Clash。
+下载对应软件模块的独立 ZIP，完整解压并阅读 START-HERE.txt。先检查，保留自定义配置。Clash 的 Start.bat 提供中文菜单，统一检查、优化、恢复、按需诊断、节点初筛及策略组暂存。旧 Positron 全家桶仅包含 Positron。
 
 ## 安全与兼容性
 
-预览版，并非稳定版。Positron 的部分工作流偏好可能隐藏有用诊断。Clash 的 DNS 预设面向中国大陆网络，自动写入仅允许默认扩展和验证过的应用版本，需要用户重新激活订阅并检查网络。监视器是独立窗口，不是已修改的官方客户端；GPU 显示最繁忙引擎估计，温度等未实现。仅本地采集，不上传私人配置，不自动安装软件、不强制关闭应用。多机及完整恢复验收尚未完成。
+预览版，不是稳定版。Positron 的部分工作流偏好可能隐藏诊断信息。Clash DNS 预设面向中国大陆网络，自动写入限已验证版本；自定义配置仅补缺失白名单字段，候选策略组须显式确认及重新激活订阅。不包含实时网络与电脑监视，不修改官方客户端，不自动切换 AI 出口。跨机与真实断网恢复仍待验证。
 
 [源码 ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) · [模块契约](docs/MODULE-CONTRACT.md) · [路线图](docs/ROADMAP.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md)
 

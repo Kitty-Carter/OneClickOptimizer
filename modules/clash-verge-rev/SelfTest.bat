@@ -1,5 +1,5 @@
 @echo off
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Optimize-Clash.ps1" -SelfTest
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0SelfTest.ps1"
 set "rc=%errorlevel%"
 pause
 exit /b %rc%

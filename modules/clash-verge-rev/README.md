@@ -1,67 +1,23 @@
-# Clash Verge Rev · 配置优化预览（第一批）
-
-独立模块，适用于已安装的 Windows Clash Verge Rev 2.5.10 / Mihomo 1.19.33（单机实测基线，不代表其他版本）。不安装客户端、不导入订阅、不上传数据、不强制关闭应用或切换节点。**面向中国大陆网络的 DNS 方案**，其他地区、企业网、校园网应审查后使用。非普适提速保证。
-
+﻿# Clash Verge Rev 一键优化工具 · 专注版 1.1 预览
 ## 使用
-1. 完整解压模块，双击 Check.bat，或运行 Optimize-Clash.ps1 -CheckOnly。默认寻找标准 AppData 目录，便携/自定义位置用 -DataPath 指定真实数据目录。
-2. 阅读下列风险。已有非默认扩展时不会覆盖，请在原生订阅页面审查并手动合并 presets/Merge.yaml 与 Script.js。默认扩展可在正常退出 Clash 后双击 Optimize.bat，确认并输入安装 exe 路径；版本不匹配拒绝自动写入。自动写入只校验文件，不验证运行行为，返回 2。
-3. 启动客户端，订阅页面「重新激活订阅」，检查 AI 固定出口、DNS、正常网站和代理访问。保留原有订阅及节点。原生界面中可关闭流量图、内核内存显示、悬停导航，开启 10 分钟自动轻量模式；这些是手动建议而非脚本强制项。需要监视时重新开启图表。原生测速 URL 可选 HTTPS 204；保留自定义探测需求。
-4. 回滚：正常退出 Clash，确认当前扩展没有后续合法修改，按输出备份目录中的原始 Merge.yaml / Script.js 恢复至 profiles，再启动并重新激活。备份仅本机保存。建议另做原生备份。没有自动跨版本恢复。
+完整解压 ZIP（不要直接在压缩软件中运行），双击 Start.bat。只想应用预设可双击 Optimize.bat，自动定位已安装客户端及数据目录。Check.bat 仅检查；Restore.bat 恢复经哈希核验的 OCO 备份。所有功能从菜单进入。Windows x64，PowerShell 5.1、系统 curl.exe、已安装 Clash Verge Rev；不需要额外安装 Rust、Python、Node.js 或 Git。脚本进程级 ExecutionPolicy Bypass，不修改系统策略。
+## 设计来源
+以 2026-11-27 第一批配置优化（Git 提交 6c61349，Merge v2.2、Script v2.3）和截图中的 v3.0 节点质量评估为核心；复用其后的安全事务、恢复和独立节点隔离技术。剔除所有网络/电脑实时监视器（C#、Rust 监视、GPU、磁盘、流量曲线等），无新增服务、驻留进程、任务计划，不替换正式客户端或内核。
+## 自动定位
+从实际运行进程、卸载注册表、App Paths、快捷方式、常见磁盘路径查找；未命中则搜索固定磁盘及桌面/下载目录（深度4、3500目录、约12秒预算，非全盘穷尽）。多个候选由你选择；还未发现时输入真实 clash-verge.exe 路径，不是安装程序或 ZIP。自动确认同目录内核和真实数据目录的 verge.yaml、profiles.yaml、两个扩展；必要时手动指定。默认 AppData 是上游 2.5.10 数据解析规则，不假定安装目录。优先读取运行配置顶层 mixed-port，非标准表示时可在菜单 P 指定。
+## 配置优化
+目前自动写入仅验收 Clash Verge Rev 2.5.10 / Mihomo 1.19.33，且为中国大陆网络导向的预设。DNS Fake-IP/ARC、国内外 DoH、TCP 并发、持久化、精确规则去重、AI 固定组、原生健康探测。AI 固定组只覆盖列出的域名；不等同于全系统 kill switch；provider 可能含非代理节点。DNS bootstrap 仍使用明文 UDP，不宣称防泄漏。原始订阅、节点认证、TUN、MTU、系统代理、防火墙、客户端和内核均不更改。
+应用前保存工作并正常退出 Clash（程序不会强制退出）。已有同预设则停止；只接受 UTF-8 BOM/CRLF 差异等价，不重写。其他自定义扩展拒绝覆盖。备份、清单、写入及恢复回读保持字节精确校验；发生部分写入故障时尝试恢复。优化后自行启动 Clash，在订阅页「重新激活订阅」并检查实际连通性。退出2可能是已写入但待人工激活或自定义/版本不兼容，不等于成功。恢复也只恢复这两个扩展，不能恢复全部应用/服务/TUN。
+## 节点质量检测（Rust）
+菜单4：先列出支持的全部内联 AnyTLS、VLESS、Hysteria2（排除重复名称、链式依赖、不可解析字段等）。ALL 对最多120个合格节点逐个发送两次 HTTPS 204（最多15 MiB响应体预算，不包括握手及协议开销；可能较耗时）。或选择批次编号，每批最多6个；深入模式在两次204成功后增加一个1MiB下载及一次ChatGPT HTTP测试（每批上限约19 MiB响应体预算）。需要主动确认，失败如实显示，无定时扫描。
+Rust 只用于安全 YAML 解析及隔离测试。临时 ACL 限制、回环随机端口、PID校验、Windows Job 对象关闭子内核；不暴露控制接口。正常退出清理临时文件；异常退出可能遗留 LocalAppData 下 OCO-Quality-* 私有目录。原始 TUN 仍可能影响实际底层路径。未支持 provider-only、链式及其他协议的独立测试；不删除未通过节点、不关闭TLS验证、不自动换节点。测速为有限样本，HTTP 200 不保证登录使用，TLS字段不证明服务器身份。当前结果可用于人工选择候选，不是自动可信策略组。
+## 网络诊断与出口检查
+菜单5发送两轮固定 HTTPS 探测；只反映当前规则路径，可能 DIRECT。菜单6确认后仅发送一次 IPPure 官方 API 请求，第三方会看到请求出口及网络元数据，不保存原始IP或完整响应，无自动批量查询、无重试。解析测试通过；真实IPPure接口未在本次主动验收。风险分不代表TLS安全。菜单7只读本地接口和监听状态，不是实时监视。
+## 已知边界
+无自动TUN/MTU切换、全应用恢复、跨版本兼容保证、完整DNS泄漏/UDP验证、原生智能调度自动写入。保留以前通过验证的预设，不声称本次网络提速。未测试的任意安装结构需要手动输入。Windows x64 二进制未签名，源码和依赖许可随包提供。
 
-## 方案依据与边界
-- TCP 并发、持久化节点选择、Fake-IP/ARC、国内外 DNS 分流：针对上述版本与网络环境验证过配置生成；DNS 启动解析使用明文 UDP DNS，可能与本地网络策略冲突，不代表防泄漏已验证。
-- 精确规则去重保持首个规则；管理的 AI 域名规则会置顶，改变这部分订阅分流；按需手动选择节点。空组 REJECT 已用独立内核行为测试；无合适节点/同名冲突时脚本不创建 AI 组，provider 也可能含直连类型，非全系统 kill switch。
-- 原生 health-check 仅补充缺失/已知 HTTP 探测 URL；限制过长检测周期；保留 interval=0、自定义 URL；延迟不是吞吐量。
-- 不自动关闭 TLS 验证，不调整 TUN/MTU、系统代理、GeoData、原始订阅、密钥或防火墙。轻量模式单机工作集快照曾明显降低（非严格基准）。多机、真实 BAT 双击、完整回滚、DNS 泄漏及新安装客户端自动应用尚未验收。
-- 官方参考：https://github.com/clash-verge-rev/clash-verge-rev/tree/v2.5.10 和 https://github.com/MetaCubeX/mihomo/tree/v1.19.33
-
-退出码：0 检查/自检完成或文件已匹配（不等于生效）；1 失败或取消；2 自定义、版本不匹配或已写入但需人工激活验证。
-
-## 第二批：网络与电脑监视预览
-
-双击 `Monitor.bat`（Windows PowerShell 5.1 + .NET Framework/WinForms，无需安装 Python、Node 或额外驱动）。窗口按默认 2 秒刷新；可勾选 Always on top 置顶。关闭窗口即退出采样。也可运行 `powershell.exe -NoProfile -STA -File Monitor-Clash.ps1 -Sample` 进行一次只读采样，`-SelfTest` 运行计数差分测试，`-SmokeTest` 自动关闭测试窗口。`-IntervalMs` 支持 1000–10000 ms。
-
-显示整机 CPU、内存、Mihomo 进程工作集及 CPU，以及各网卡状态、链路速率、独立收发速率和本次会话内累计量。物理网卡依据 Get-NetAdapter -Physical 的 GUID 识别；Mihomo/Meta/Tunnel 仅标为隧道候选；其余不推断。连接断开、计数回退、采样间隔过长时速率标为不可用，避免虚假尖峰。物理网卡与 TUN 不相加；Mihomo 进程资源不是内核堆内存，网卡流量也不是订阅计费流量。当前累计量只覆盖有效采样区间，不写历史文件。
-
-**功能边界：** 这是按需启动的只读辅助窗口，不是已经集成进 Clash 的新原生页面；尚无任务栏嵌入、Mihomo 私有接口流量、按进程流量、GPU/温度、持久化历史、自动诊断或 IPPure 自动检测。无网络请求、不读取订阅或控制密钥、不开放端口、不安装自启动、不改变代理设置。未验证 30 MiB 内存或 1% CPU 预算、多机兼容性、实际 GUI 像素布局。参考 TrafficMonitor 的显示思路，代码为本模块新编写，并未复制其源码。后续原生集成需独立构建并验收。
-
-已执行：Windows PS5.1 编译、5 项速率差分断言、实机系统采样、窗口多次采样后自动退出冒烟测试；这些不代表长时间性能验收。
-
-## 0.2.0-alpha.2: hardware and usability review
-
-Monitor.bat now includes optional Windows hardware counters: physical disk non-idle percentage (100 minus _Total idle time), disk read/write rates, GPU busiest-engine estimate (aggregate per engine, then max; not total GPU utilization), and battery when available. Unavailable data = N/A. Hardware sampling runs at most once per 15 seconds and may take longer; base sampling defaults to 2 seconds, no overlapping jobs. Monitor-Lite.bat skips optional hardware queries. Counter timestamps are taken before hardware queries. No temperature, per-process network, daily history, taskbar or native Clash integration yet. No continuous external queries. Close the window to exit. See validation notes for limits.
-
-Validation: Windows 11 / PS 5.1, 7 rate assertions passed; live sample returned disk, GPU and battery data; 20-second GUI smoke exited 0. Short hardware-mode process observation: max working set 155.9 MiB, private 115.8 MiB, process CPU normalized to whole machine 0.129% over ~8 seconds. These are not full system overhead or long-run guarantees; the 30 MiB budget is not met. Temperature, taskbar integration, native client integration, per-process traffic, and long-run acceptance remain pending.
-
-## 0.3.0-alpha.1: feedback-controlled optimization and native Lite monitor
-
-**Native-Monitor.bat** in the standalone x64 Windows ZIP starts the Rust/Win32 basic monitor (CPU, RAM, battery, independent NIC receive/transmit rates, receive link speed and interface-level MTU). No Rust installation required for the included binary. The source snapshot has no binary; build with cargo build --release --locked in native-monitor and place target/release/oco-clash-monitor.exe in bin manually. The native monitor is separate from Clash, does not request network or read credentials, and stops on close. A short GUI test measured 20.55 MiB peak observed working set, 4.28 MiB private, 0% measured normalized process CPU over about 2 seconds (not zero actual CPU). This is a reduced feature set and not a like-for-like comparison with the C# hardware mode. Keep Monitor.bat for GPU, disk and Mihomo process metrics; the Rust basic monitor does not yet provide these. No taskbar/native Clash integration, temperature or long-run acceptance. Link speed is negotiated interface metadata, not throughput; interface MTU may differ from IPv4/IPv6 stack MTU. Windows filter interfaces excluded; hardware/tunnel labels are hints, not automatic routing decisions.
-
-**Restore.bat** prompts for a local OCO backup directory; the two original bytes are verified against manifest.json. Current files must match the recorded before or after hashes; later custom edits or corrupted backups are refused. Close Clash normally before applying or restoring. A new recovery backup is created before a restore. Start Clash normally, reactivate the subscription and verify networking; no automatic TUN switch or runtime activation claim. Advanced: Optimize-Clash.ps1 -RestoreFrom PATH [-DataPath PATH] [-CheckOnly]. This restores only the two extension files, not whole-app state. The optimizer now also checks bundled verge-mihomo.exe -v for exact 1.19.33 before a new automatic write. The active core could differ; the check is not proof of live activation. Existing matching presets do not need a write.
-
-Control loop: inspect -> decide against version and hash constraints -> back up -> apply -> byte readback -> human-triggered runtime activation -> network verification; refusal or restore on deviation. Monitoring is observation only, not an automatic node switching controller. Real TUN disconnect recovery and multi-machine acceptance remain open.
-
-## 0.3.0-alpha.2: expanded native monitor
-
-Native-Monitor.bat now samples CPU, RAM, battery, independent NIC rates and valid-interval session bytes, Mihomo process CPU / working set / private bytes, and optional _Total disk non-idle/read/write counters. Native-Monitor-Lite.bat disables disk queries. The GUI consumes a bounded one-slot channel from a background sampler; slow counters no longer directly block the GUI thread. Base sampling is approximately 2 seconds; disk approximately 6 seconds, process counter fallback approximately 4 seconds; under load intervals may be longer. Session counts are in-memory, omit invalid intervals, and reset on interface disappearance or enumeration failure. No persistent daily history. Windows PDH English counter names are used to avoid local-language paths. For elevated service processes where read-only handle access fails, use the legacy Process counter instance only when exactly one matching executable is enumerated and its counter PID matches; unavailable or ambiguous metrics are N/A. No privilege elevation. CPU is normalized to available logical CPUs; memory metrics are not Mihomo heap usage. GPU is still available through the C# hardware window; temperatures and original-client integration remain unimplemented.
-
-The existing configuration presets are unchanged. The exact Mihomo v1.19.33 RawDNS struct and config assignment confirm fallback-lazy-query is supported; this source inspection is not a measured upstream DNS latency or leak test. See https://github.com/MetaCubeX/mihomo/blob/v1.19.33/config/config.go. Do not rewrite matching live configuration merely to claim a change.
-
-Optimizer alpha.2 adds backup and manifest readback before any write, complete preflight and final transaction readback, and rollback readback. A fixture-only fault injection after the first write restores both original fixture files byte-for-byte. This is a partial-write fault test, not proof of recovery from power loss, arbitrary concurrent edits, or a real TUN disconnect. Existing matching live presets remain untouched.
-
-Windows 11 native monitoring: eight Rust unit tests passed; live PDH fallback returned Mihomo CPU/WS/private after warm-up and disk counters returned data; the final alpha.2 source-build window observed 26.77 MiB peak sampled WS, 10.87 MiB private, 0.04% normalized process CPU during 16.12 s (nine samples) and closed normally. These short observations do not establish full system overhead or long-run stability.
-
-## 0.3.0-alpha.3: on-demand network diagnostics / current exit information
-
-- Diagnose.bat: two sequential rounds of HTTPS probes against Cloudflare 204, GitHub and ChatGPT. Shows response code, curl transport result, elapsed time and median of expected responses; HTTP 403/429 etc. are HTTP_OTHER, not a successful expected response. Uses Windows curl.exe with TLS verification, explicit localhost proxy, no curlrc, no redirects and bounded time/response size. Before probing, verifies IPv4 loopback-only listening socket and verge-mihomo process name/PID; this is a guard, not executable identity attestation. Default port 7897; custom ports: run Diagnose-Clash.ps1 -Port PORT -Rounds 1..3. No direct curl fallback, but Mihomo routing rules may legitimately select DIRECT. Actual connection path may vary by target. No forced node switch or controller write. It measures current routed path, not individual-node speed, throughput, DNS leakage, UDP or authenticated access.
-- Inspect-Exit.bat: explicitly confirm one request to IPPure public current-IP endpoint (https://my.ippure.com/v1/info). Only displays locally validated country code, ASN and provider estimates; no raw IP or response retained by OCO. External service receives the request and its network metadata; cancel to send nothing. No batch enumeration, cache/database collection, automatic ranking, access-control evasion or retry. IPPure API is beta; unavailable/malformed fields are unknown. Terms: https://ippure.com/en/terms-privacy and API: https://ippure.com/MyIP-Info-API. The provider score is not proof of security or service access. Live IPPure call not made during this release validation; parser fixtures passed.
-- PowerShell SelfTest is offline. Exit 0 means all expected connectivity responses (or single valid optional exit response/cancellation); exit 2 means unexpected or unavailable result; exit 1 means local precondition/error. This is not a node-selection engine.
-- Upstream Clash Verge Rev v2.5.10 is GPLv3 and declares pnpm@12.16.1 in package.json. OCO remains an independent MIT companion; no upstream source copied into this module. Native client integration requires separate license-compliant source/build and acceptance. pnpm not found on current PATH.
-
-## 0.4.0-alpha.1 integrated preview (scope-limited)
-
-Start.bat is the unified Chinese console entry for read-only checks, guarded optimization/restore, Rust monitoring, HTTPS diagnostics, node screening and the optional IPPure request. Custom data directory, port and client path can be selected; no forced shutdown or installation. Existing BAT entries remain. Native monitor uses independent fast and slow workers with bounded channels and stale-value labels, optional GPU busiest-engine estimate via PDH, disk and process counters; Lite skips disk/GPU, not all process counters. No per-adapter VRAM, temperatures, persistent daily/weekly history, private core traffic or native Tauri integration. A 20-second source-build snapshot observed 26.97 MiB Lite and 27.69 MiB balanced peak sampled working set; no long-run or system-wide overhead claim.
-
-Node screening uses a pinned YAML parser, exact bundled core version, at most six eligible inline AnyTLS/VLESS/Hysteria2 nodes and two bounded Cloudflare HTTPS 204 requests each. It copies only one selected node to a temporary local ACL-restricted configuration, disables TUN/DNS/controller/LAN, validates IPv4 loopback listener and PID, uses a kill-on-close Windows job and removes temporary files after normal completion. The running official TUN may still affect the underlying path. No provider-only, chained nodes, exhaustive speed/egress or TLS authentication assurance; no automatic selection, no batch IPPure, no public node data. A candidate is only an initial availability observation. Abrupt termination may leave the private directory; job assignment failure refuses probes. Do not share console output containing node names.
-
-Test-Watchdog.ps1 is strictly a detached timer recovery fixture, not a live network watchdog. Real TUN/service/route recovery is not verified; do not use this preview for live network switching. Existing safe preset bytes are unchanged. Full upstream native-client build, long-duration tests, DNS leak, smart group scheduling, clean-machine and whole-app recovery remain unverified or blocked. This is not the completed v6 plan or a stable release. The standalone package includes both x64 Rust executables, sources and dependency licenses; development tooling is not needed for ordinary use.
+## 1.1 新功能（范围限定预览）
+菜单8：自定义 YAML 仅补缺失的 tcp-concurrent、profile.store-selected、profile.store-fake-ip；保留所有已解析值及 Script.js 原始字节。存在无法处理的结构则拒绝。YAML 注释与排版可能改变，确认后才暂存；备份目录权限限制为当前用户/SYSTEM/管理员。原默认预设与自定义补全分开，显式 false 不会被覆盖。
+菜单9：选批次或 AUTO。每个候选先3次204；AUTO最多120节点、最多3并发隔离内核，初筛成功者按中位耗时选前6再做3次204和2次1 MiB下载，响应体预算最多36 MiB，不含握手和协议开销。只有3/3者进入实测候选，>=2才有原生低延迟组；2/2下载才进入下载候选，按两次速度中位数排序。部分失败仍可产生候选，退出0仅表示候选文件已生成，不代表全部节点通过。不进行IPPure批量查询或身份可信判断。
+菜单10：候选文件须在生成后1小时内、原始运行配置字节SHA256一致，选择现有非AI手动选择组。Rust只生成固定模板脚本，拒绝组名冲突/未知成员/篡改组字段，内核在隔离目录进行 -t 校验。仅当全局Script.js与原v2.3预设相符且正式Clash正常退出时允许暂存。原规则和节点保留，向指定组末尾追加选择项，不自动切换现有出口。每个候选用完整节点对象规范化SHA256绑定，参数变化则跳过；24小时后未来重新生成配置时不再加入新组，不是运行中自动移除。此摘要是本地一致性约束而非外部签名或身份认证；候选文件和生成脚本须保密，不上传。恢复使用菜单3的本次备份；若以后重新评估先恢复原v2.3，再生成新候选。首次应用仍需手动启动、重新激活订阅并验证，不能证明真实断网恢复。当前正式配置没有被改写。
+源代码模式需要开发工具编译 rust-node-quality；普通用户下载完整Release ZIP即可，不需开发环境。原生监视与硬件功能均已移除，不新增驻留服务。

@@ -26,21 +26,13 @@ jobs:
       - name: Test Positron in isolated fixtures
         shell: powershell
         run: powershell.exe -NoProfile -File .\tests\Test-Positron.ps1
-      - name: Test Clash in isolated fixtures
-        shell: powershell
-        run: powershell.exe -NoProfile -File .\modules\clash-verge-rev\Optimize-Clash.ps1 -SelfTest
-      - name: Test Clash preset behavior
-        shell: powershell
-        run: node .\modules\clash-verge-rev\tests\test-presets.js
-      - name: Compile and test network monitor
-        shell: powershell
-        run: powershell.exe -NoProfile -STA -File .\modules\clash-verge-rev\Monitor-Clash.ps1 -SelfTest
-      - name: Test and build native Rust monitor
+      - name: Test Clash preset and policy behavior
         shell: powershell
         run: |
-          cargo test --locked --manifest-path modules/clash-verge-rev/native-monitor/Cargo.toml
+          node .\modules\clash-verge-rev\tests\test-presets.js
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          cargo build --release --locked --manifest-path modules/clash-verge-rev/native-monitor/Cargo.toml
+          node .\modules\clash-verge-rev\tests\test-policy.js
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Test network diagnostic parser and decision logic (offline)
         shell: powershell
         run: powershell.exe -NoProfile -File .\modules\clash-verge-rev\Diagnose-Clash.ps1 -SelfTest
@@ -64,9 +56,12 @@ jobs:
             powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x $file) -SelfTest
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
           }
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x 'Start-ClashOptimizer.ps1') -SelfTest -RequireBinaries
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x 'SelfTest.ps1')
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           & (Join-Path $x 'bin\oco-node-quality.exe') --selftest
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           node (Join-Path $x 'tests\test-presets.js')
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Test extracted policy template
+        shell: powershell
+        run: node (Join-Path $env:RUNNER_TEMP 'oco-clash-package\Extracted module\tests\test-policy.js')

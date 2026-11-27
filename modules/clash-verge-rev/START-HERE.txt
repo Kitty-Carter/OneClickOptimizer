@@ -1,4 +1,2 @@
-Clash Verge Rev Optimizer 0.4.0-alpha.1 | Windows x64 preview
-Extract all files. Double-click Start.bat for the Chinese console menu.
-1 checks local state; 2 guarded optimization; 3 restores an OCO backup; 4/5 native monitoring; 6 HTTPS diagnostics; 7 bounded node screening; 8 optional IPPure.
-Keep old entries for compatibility. No automatic node switching, no live TUN rollback, no modified official client. Read README.md for limitations.
+Clash Verge Rev Optimizer v1.1.0-alpha.1 | Focused preview
+Extract ALL files, double-click Start.bat. Optimize.bat applies the guarded original preset; menu 8 preserves custom values; menu 9 generates measured policy candidates; menu 10 stages only after explicit confirmation and normal Clash exit. Read README.md. No network/hardware monitor. Preview, not stable; no auto AI switching or live TUN recovery.

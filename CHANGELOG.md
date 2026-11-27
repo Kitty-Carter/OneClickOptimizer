@@ -45,3 +45,10 @@
 - Native split sampling, GPU busiest-engine estimate and stale-state handling.
 - Bounded isolated inline-node screening, ACL-restricted temporary config, PID and job guards.
 - Detached rollback fixture and exact-commit package CI; no live TUN changes or completed native client integration.
+
+## Clash 1.1.0-alpha.1 | Focused optimizer
+
+- Remove real-time network and PC monitoring from current source/package; preserve historical tags/releases.
+- Automatic installation discovery, conservative structured missing-only YAML merge and ACL-restricted backups.
+- Rust bounded three-worker screening, repeated download sampling, native candidate groups, source/node fingerprint and expiry checks, explicit staging with original script recovery.
+- No modified client, no automatic AI selection, no live TUN/DNS switch. Preview only.

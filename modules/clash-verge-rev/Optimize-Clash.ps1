@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([switch]$CheckOnly,[switch]$SelfTest,[string]$DataPath,[string]$BackupRoot,[string]$RestoreFrom,[switch]$RestorePrompt,[string]$AppPath)
+param([switch]$CheckOnly,[switch]$SelfTest,[string]$DataPath,[string]$BackupRoot,[string]$RestoreFrom,[switch]$RestorePrompt,[string]$AppPath,[switch]$AddMissing,[string]$PolicyFrom,[string]$PolicyParent)
 $ErrorActionPreference='Stop'
 $utf8=New-Object System.Text.UTF8Encoding($false)
 $files=@('Merge.yaml','Script.js')
@@ -11,13 +11,72 @@ function IsDefault([string]$n,[byte[]]$b){
  $t=($t -split '\r?\n' | Where-Object {$_ -notmatch '^\s*(//.*)?$'}) -join ' '
  return ($t.Trim() -eq '' -or $t.Trim() -match '^function\s+main\s*\(\s*config\s*(,\s*profileName\s*)?\)\s*\{\s*return\s+config\s*;?\s*\}\s*;?$')
 }
-function Plan([string]$dir){
+function SamePreset([byte[]]$a,[byte[]]$b){
+ if((Hash $a) -eq (Hash $b)){return $true}
+ # Only normalize BOM and CRLF; strict UTF8 avoids replacing invalid bytes.
+ try{
+  $strict=New-Object Text.UTF8Encoding($false,$true)
+  $x=$strict.GetString($a).TrimStart([char]0xFEFF).Replace([string][char]13+[char]10,[string][char]10)
+  $y=$strict.GetString($b).TrimStart([char]0xFEFF).Replace([string][char]13+[char]10,[string][char]10)
+  return ($x -ceq $y)
+ }catch{return $false}
+}
+function PrivateDir([string]$p){
+ New-Item -ItemType Directory -Path $p -ErrorAction Stop|Out-Null
+ $acl=New-Object Security.AccessControl.DirectorySecurity
+ $acl.SetAccessRuleProtection($true,$false)
+ $me=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+ foreach($sid in @($me,'S-1-5-18','S-1-5-32-544')){
+  $id=New-Object Security.Principal.SecurityIdentifier($sid)
+  $acl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($id,'FullControl','ContainerInherit,ObjectInherit','None','Allow')))
+ }
+ Set-Acl -LiteralPath $p -AclObject $acl
+ $actual=Get-Acl -LiteralPath $p
+ if(!$actual.AreAccessRulesProtected){throw 'Private ACL verification failed'}
+ foreach($r in $actual.Access){
+  $sid=$r.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value
+  if($sid -notin @($me,'S-1-5-18','S-1-5-32-544')){throw 'Unexpected ACL identity'}
+ }
+}
+function SafeMerge([byte[]]$old){
+ $t=Join-Path $env:LOCALAPPDATA ('OCO-Merge-'+[guid]::NewGuid().ToString('N'))
+ try{
+  PrivateDir $t
+  $a=Join-Path $t 'input.yaml';$b=Join-Path $t 'candidate.yaml'
+  [IO.File]::WriteAllBytes($a,$old)
+  $exe=Join-Path $PSScriptRoot 'bin\oco-node-quality.exe'
+  & $exe --merge-safe $a $b | Out-Host
+  $rc=$LASTEXITCODE
+  if($rc -eq 3){return ,$old}
+  if($rc -ne 0 -or !(Test-Path -LiteralPath $b -PathType Leaf)){throw 'Structured merge refused; no changes'}
+  return ,(ReadBytes $b)
+ }finally{if(Test-Path -LiteralPath $t){Remove-Item -LiteralPath $t -Recurse -Force}}
+}
+function SafePolicy([string]$data,[string]$app,[string]$proposal,[string]$parent){
+ if(!$app -or !$parent){throw 'Policy needs confirmed client and explicit existing non-AI parent'}
+ $runtime=Join-Path $data 'clash-verge.yaml'
+ $core=Join-Path (Split-Path -Parent $app) 'verge-mihomo.exe'
+ $t=Join-Path $env:LOCALAPPDATA ('OCO-PolicyStage-'+[guid]::NewGuid().ToString('N'))
+ try{
+  PrivateDir $t
+  $out=Join-Path $t 'candidate.js'
+  & (Join-Path $PSScriptRoot 'bin\oco-node-quality.exe') --compose-policy $runtime $core $proposal $parent $out | Out-Host
+  if($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath $out -PathType Leaf)){throw 'Policy validation refused; no write'}
+  return ,(ReadBytes $out)
+ }finally{if(Test-Path -LiteralPath $t){Remove-Item -LiteralPath $t -Recurse -Force}}
+}
+function Plan([string]$dir,[switch]$MissingOnly){
  foreach($n in $files){
   $p=Join-Path $dir $n
   if(!(Test-Path -LiteralPath $p -PathType Leaf)){throw "Missing native extension: $n"}
   if((Get-Item -LiteralPath $p).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse point not supported'}
   $old=ReadBytes $p;$new=ReadBytes (Join-Path $PSScriptRoot "presets\$n")
-  $state=if((Hash $old) -eq (Hash $new)){'same'}elseif(IsDefault $n $old){'ready'}else{'custom'}
+  if($MissingOnly){
+   $new=if($n -eq 'Merge.yaml'){SafeMerge $old}else{,$old}
+   $new=[byte[]]$new
+   $state=if((Hash $old) -eq (Hash $new)){'same'}else{'ready'}
+  }else{$state=if(SamePreset $old $new){$new=$old;'same'}elseif(IsDefault $n $old){'ready'}else{'custom'}}
+
   [pscustomobject]@{Name=$n;Path=$p;Old=$old;New=$new;State=$state}
  }
 }
@@ -51,7 +110,8 @@ function Apply($plan,[string]$root,[switch]$Fixture,[switch]$InjectFailure){
  if(!$Fixture -and (Get-Process clash-verge,verge-mihomo -ErrorAction SilentlyContinue)){throw 'Close Clash normally before applying; no automatic shutdown.'}
  if(!$root){throw 'Backup root required'}
  $b=Join-Path $root ('clash-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N'))
- New-Item -ItemType Directory -Path $b -Force|Out-Null
+ if(!(Test-Path -LiteralPath $root -PathType Container)){New-Item -ItemType Directory -Path $root -Force|Out-Null}
+ PrivateDir $b
  foreach($x in $plan){
   $bp=Join-Path $b $x.Name
   [IO.File]::WriteAllBytes($bp,$x.Old)
@@ -122,9 +182,28 @@ try{
    $r=@(RestorePlan $t $backup);if(@($r|Where-Object State -eq 'custom').Count -ne 1){throw 'restore concurrent edit not detected'}
    $refused=$false;try{$null=Apply $r (Join-Path $t 'backup') -Fixture}catch{$refused=$true};if(!$refused){throw 'restore overwrote later edit'}
    $refused=$false;try{Apply $p (Join-Path $t 'backup') -Fixture}catch{$refused=$true};if(!$refused){throw 'custom overwritten'}
+   foreach($n in $files){
+    $text=[IO.File]::ReadAllText((Join-Path $PSScriptRoot "presets\$n")).Replace([string][char]13+[char]10,[string][char]10).Replace([string][char]10,[string][char]13+[char]10)
+    [IO.File]::WriteAllText((Join-Path $t $n),$text,(New-Object Text.UTF8Encoding($true)))
+   }
+   $p=@(Plan $t);if(@($p|Where-Object State -eq 'same').Count -ne 2){throw 'BOM/CRLF equivalence failed'}
+   foreach($x in $p){if((Hash $x.Old) -ne (Hash $x.New)){throw 'Equivalent file would be rewritten'}}
+   [IO.File]::WriteAllText((Join-Path $t 'Merge.yaml'),"dns: {enable: false}"+[char]10+"profile: {store-selected: false}"+[char]10,$utf8)
+   [IO.File]::WriteAllText((Join-Path $t 'Script.js'),'function main(c){c.mode="direct";return c;}',$utf8)
+   $p=@(Plan $t -MissingOnly)
+   if($p[0].State -ne 'ready' -or $p[1].State -ne 'same'){throw 'missing-only planning failed'}
+   $scriptHash=Hash $p[1].Old
+   $b2=Apply $p (Join-Path $t 'backup') -Fixture
+   if((Hash (ReadBytes (Join-Path $t 'Script.js'))) -ne $scriptHash){throw 'Custom JS changed'}
+   $again=@(Plan $t -MissingOnly)
+   if(@($again|Where-Object State -ne 'same').Count){throw 'Missing-only idempotence failed'}
+   $null=Apply @(RestorePlan $t $b2) (Join-Path $t 'backup') -Fixture
+   if((Hash (ReadBytes (Join-Path $t 'Merge.yaml'))) -ne (Hash $p[0].Old)){throw 'Missing-only restore failed'}
+   Write-Host 'CLASH_MISSING_ONLY_SELF_TEST_OK'
    Write-Host 'CLASH_SELF_TEST_OK';exit 0
   }finally{if(Test-Path -LiteralPath $t){Remove-Item -LiteralPath $t -Recurse -Force}}
  }
+ if(($AddMissing -and ($RestorePrompt -or $RestoreFrom -or $PolicyFrom)) -or ($PolicyFrom -and ($RestorePrompt -or $RestoreFrom))){throw 'Choose one action'}
  if($RestorePrompt){
   if($RestoreFrom){throw 'Choose only one restore input'}
   $RestoreFrom=(Read-Host 'Enter full OCO backup directory path').Trim().Trim([char]34)
@@ -147,13 +226,33 @@ try{
   Write-Host 'Original bytes restored. Start Clash and reactivate subscription; verify live network.'
   exit 2
  }
- $p=@(Plan $dir)
+ if($PolicyFrom){
+  $p=@(Plan $dir)
+  $scriptRow=@($p|Where-Object Name -eq 'Script.js')[0]
+  if($scriptRow.State -ne 'same'){throw 'Policy staging requires exact original v2.3 Script.js; restore baseline first'}
+  $mergeRow=@($p|Where-Object Name -eq 'Merge.yaml')[0]
+  $mergeRow.New=$mergeRow.Old;$mergeRow.State='same'
+  $runtimePath=Join-Path $DataPath 'clash-verge.yaml'
+  $runtimeHash=Hash (ReadBytes $runtimePath)
+  $scriptRow.New=[byte[]](SafePolicy $DataPath $AppPath $PolicyFrom $PolicyParent)
+  if((Hash (ReadBytes $runtimePath)) -ne $runtimeHash){throw 'Runtime changed during policy preparation'}
+  $scriptRow.State=if((Hash $scriptRow.New) -eq (Hash $scriptRow.Old)){'same'}else{'ready'}
+ }else{$p=@(Plan $dir -MissingOnly:$AddMissing)}
  $p|Select-Object Name,State|Format-Table
  if(@($p|Where-Object State -eq 'custom').Count){Write-Warning 'Custom extensions preserved. Review guide and integrate manually.';exit 2}
  if($CheckOnly){exit 0}
  if(@($p|Where-Object State -eq 'ready').Count -eq 0){Write-Host 'Preset files already match; live behavior not checked.';exit 0}
- Write-Host 'China-oriented DNS and OpenAI routing preset for Clash Verge Rev 2.5.10 / Mihomo 1.19.33. Review guide. Close Clash manually first.'
- if((Read-Host 'Apply only to default extensions? [Y/N]') -notmatch '^[Yy]$'){exit 1}
+ if($PolicyFrom){
+  Write-Host 'Append measured candidates to the explicitly chosen existing select group. No route or AI selection is changed. Candidate expires on future reloads after 24h; close Clash normally first.'
+  if((Read-Host 'Stage validated policy extension? [Y/N]') -notmatch '^[Yy]$'){exit 1}
+ }elseif($AddMissing){
+  Write-Host 'Add only absent tcp-concurrent and profile persistence keys. Explicit values and Script.js preserved. YAML comments/format may change. Close Clash manually first.'
+  if((Read-Host 'Apply conservative structured merge? [Y/N]') -notmatch '^[Yy]$'){exit 1}
+ }else{
+  Write-Host 'China-oriented DNS and OpenAI routing preset for Clash Verge Rev 2.5.10 / Mihomo 1.19.33. Review guide. Close Clash manually first.'
+  if((Read-Host 'Apply only to default extensions? [Y/N]') -notmatch '^[Yy]$'){exit 1}
+ }
+
  # Restrict automatic application to explicit verified version. Do not guess a core path.
  $exe=if($AppPath){$AppPath}else{Read-Host 'Full path to installed clash-verge.exe'}
  if(!(Test-Path -LiteralPath $exe -PathType Leaf) -or [IO.Path]::GetFileName($exe) -ne 'clash-verge.exe'){throw 'App executable not confirmed'}
@@ -164,6 +263,7 @@ try{
  $coreVersion=& $core -v 2>&1 | Out-String
  if($LASTEXITCODE -ne 0 -or $coreVersion -notmatch '(?m)\bMihomo\s+Meta\s+v1\.19\.33(?:\s|$)'){Write-Warning 'Core version not validated; no write.';exit 2}
  if(!$BackupRoot){$BackupRoot=Join-Path $env:LOCALAPPDATA 'OneClickOptimizer\Backups\ClashVerge'}
+ if($PolicyFrom){if((Hash (ReadBytes $runtimePath)) -ne $runtimeHash){throw 'Runtime changed before transaction; retest'};if((Get-Process clash-verge,verge-mihomo -ErrorAction SilentlyContinue)){throw 'Close Clash normally before applying'}; $fresh=[byte[]](SafePolicy $DataPath $AppPath $PolicyFrom $PolicyParent);if((Hash $fresh) -ne (Hash $scriptRow.New)){throw 'Policy changed during final validation'}}
  $null=Apply $p $BackupRoot
  Write-Host 'Start Clash normally, reactivate the subscription, verify network and AI routing. Live activation is not automatically verified.'
  exit 2
