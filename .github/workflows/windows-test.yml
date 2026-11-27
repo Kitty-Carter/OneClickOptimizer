@@ -26,52 +26,18 @@ jobs:
       - name: Test Positron in isolated fixtures
         shell: powershell
         run: powershell.exe -NoProfile -File .\tests\Test-Positron.ps1
-      - name: Test Clash preset and policy behavior
-        shell: powershell
-        run: |
-          node .\modules\clash-verge-rev\tests\test-presets.js
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          node .\modules\clash-verge-rev\tests\test-policy.js
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-      - name: Test network diagnostic parser and decision logic (offline)
-        shell: powershell
-        run: powershell.exe -NoProfile -File .\modules\clash-verge-rev\Diagnose-Clash.ps1 -SelfTest
-      - name: Test local health, panel and detached rollback fixture
-        shell: powershell
-        run: |
-          foreach ($file in @('Inspect-Local.ps1','Start-ClashOptimizer.ps1','tests/Test-Watchdog.ps1')) {
-            powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path .\modules\clash-verge-rev $file) -SelfTest
-            if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          }
-      - name: Rust formatting, unit tests and warning-free lint
-        shell: powershell
-        working-directory: modules/clash-verge-rev/rust-node-quality
-        run: |
-          cargo fmt --check
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          cargo test --locked -j 1
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          cargo clippy --locked --all-targets -j 1 -- -D warnings
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-      - name: Build exact-commit standalone ZIP and test extraction
+      - name: Build exact-commit single BAT
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $out = Join-Path $env:RUNNER_TEMP 'oco-clash-package'
+          $out = Join-Path $env:RUNNER_TEMP 'oco-clash-single'
           python .github/scripts/build-clash-release.py --ref $env:GITHUB_SHA --output $out
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          $x = Join-Path $out 'Extracted module'
-          Expand-Archive -LiteralPath (Join-Path $out 'Clash-Verge-Rev-OneClick-Optimizer-Windows.zip') -DestinationPath $x
-          foreach ($file in @('Optimize-Clash.ps1','Diagnose-Clash.ps1','Inspect-Local.ps1')) {
-            powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x $file) -SelfTest
-            if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          }
-          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $x 'SelfTest.ps1') -RequirePackage
+          $bat = Join-Path $out 'Clash-OneClick-Config.bat'
+          & $bat --self-test
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          & (Join-Path $x 'bin\oco-node-quality.exe') --selftest
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          node (Join-Path $x 'tests\test-presets.js')
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-      - name: Test extracted policy template
+      - name: Check shared public payload and AI rules
         shell: powershell
-        run: node (Join-Path $env:RUNNER_TEMP 'oco-clash-package\Extracted module\tests\test-policy.js')
+        run: |
+          python modules/clash-verge-rev/tests/test-share.py
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }

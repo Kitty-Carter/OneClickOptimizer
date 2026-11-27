@@ -10,19 +10,19 @@
 
 | Positron | Clash Verge Rev |
 | :---: | :---: |
-| **Research workflow & configuration** | **Clash configuration & node optimization** |
-| v0.1.0-alpha.1 · Windows preview | v1.3.1-rc.1 · Windows release candidate |
-| [![Download Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![Download Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v1.3.1-rc.1/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
-| [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [Module guide](modules/positron) | [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v1.3.1-rc.1) · [Module guide](modules/clash-verge-rev) |
-| Seven workflow settings, checks and backups | Minimal missing-field merge, on-demand diagnostics and recoverable writes |
+| **Research workflow & configuration** | **One-click Clash configuration** |
+| v0.1.0-alpha.1 · Windows preview | v1.4.0-rc.1 · Windows release candidate |
+| [![Download Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![Download Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v1.4.0-rc.1/Clash-OneClick-Config.bat) |
+| [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [Module guide](modules/positron) | [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v1.4.0-rc.1) · [Module guide](modules/clash-verge-rev) |
+| Seven workflow settings, checks and backups | Single BAT · shared DNS, AI routing and lightweight settings |
 
 ## Get started
 
-Download the standalone ZIP for your application, extract all files and read START-HERE.txt. Check before applying and preserve custom settings. For Clash, Start.bat opens the unified Chinese console menu for checks, guarded optimization/restore, current-path diagnosis, node screening, generated-config verification, structural audit and resumable recovery. The historical Positron toolkit release contains Positron only.
+Positron: download and extract its standalone ZIP as before. Clash: download the single BAT, start a supported Clash installation once, quit normally, double-click the BAT and choose check or apply. Restart, import/reactivate your own subscription and select your own AI exit node.
 
 ## Safety and compatibility
 
-Development previews, not stable releases. Positron preferences may hide useful diagnostics. Clash's China-oriented DNS preset stages default extensions only on the validated app version; reactivate the subscription and check actual routing. No real-time network or PC monitor, no modified official client. Candidate generation is supported; all policy writing is disabled until the native lifecycle is validated. No automatic AI switching. Local-only; no forced shutdown or credential collection. Cross-machine and full recovery acceptance remain pending.
+Clash 1.4.0-rc.1 stages a shareable configuration for Clash Verge Rev 2.5.10 / bundled Mihomo 1.19.33 on Windows. It includes the owner's public DNS and 26 AI-domain rules, not private subscriptions or credentials. Custom global scripts and per-profile DNS overrides are refused. TUN/system proxy activation and AI node selection remain manual. Backups and restore are local; later edits are not overwritten. No speed guarantee, no node scanner or monitor in the new delivery. Fresh-machine activation and cross-machine recovery are not yet validated. Positron remains a separate preview.
 
 [Source ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) · [Module contract](docs/MODULE-CONTRACT.md) · [Roadmap](docs/ROADMAP.md) · [Validation](docs/VALIDATION.md) · [Changelog](CHANGELOG.md)
 

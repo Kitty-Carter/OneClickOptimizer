@@ -69,3 +69,8 @@
 ## Clash 1.3.1-rc.1 | Minimal maintenance candidate
 
 - All production optimization paths now use missing-only merge; no blanket DNS or AI script overwrite. Remove policy candidate generation from menu, keep prior recovery and read-only diagnostics. Verification is structural, not a 19-field legacy preset requirement. No migration of existing user extensions, no speed claim, no stable tag.
+
+
+## Clash 1.4.0-rc.1 | Single-file configuration
+
+- Replace recommended Clash delivery with one BAT containing verified public settings, 26 AI domain rules and check/apply/restore. Keep historical release assets and research source. No Rust build in the new package. Positron untouched. Candidate only; manual activation and cross-machine acceptance pending.

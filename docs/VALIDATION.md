@@ -49,3 +49,6 @@ Baseline 9474241, 2.5.10/1.19.33, 69 inline nodes, 522 rules, 51 skip-cert-verif
 ## Clash 1.3.1-rc.1 scope
 
 Default application is deliberately restricted to the three missing global Merge fields. Explicit values and Script.js stay intact. Legacy presets remain as regression fixtures. The change does not establish a new data-plane performance result, network recovery or second-machine acceptance. Candidate only.
+
+
+Clash 1.4.0-rc.1: exact single-BAT build, Windows temporary-file plan/apply/idempotence/restore and conflict fixtures, payload fingerprint and AI-rule checks; no second real fresh Windows activation or real disconnect recovery claim.

@@ -18,3 +18,6 @@ Clash 1.3: release BAT entry points require manifest, source development may inv
 
 
 Clash minimal default (1.3.1-rc.1): only absent global Merge tcp-concurrent, profile.store-selected and profile.store-fake-ip. No blanket DNS/AI/script replacement, no policy generation menu. Structural verification is not live network proof. Existing values in subscription-level configuration can still be affected by global settings; review before applying.
+
+
+Clash 1.4.0-rc.1: current catalog delegates to single BAT. Only public settings are embedded. Check is read-only, apply requires stopped client and confirmation; exit 2 means staged, not live. No automatic activation or node choice. Legacy source/tests are not in new distribution.

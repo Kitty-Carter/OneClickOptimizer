@@ -1,5 +1,3 @@
 @echo off
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Start-ClashOptimizer.ps1" -RequirePackage -Action Optimize
-set "rc=%errorlevel%"
-pause
-exit /b %rc%
+call "%~dp0Clash-OneClick-Config.bat" --apply
+exit /b %ERRORLEVEL%

@@ -17,3 +17,6 @@ Clash 1.3 integrated acceptance candidate: resume-safe restore, bounded measurem
 
 
 Clash: freeze feature expansion after the minimal maintenance candidate. Only concrete defect fixes if needed; no further speculative optimization.
+
+
+Clash 1.4.0-rc.1: final single-BAT shared configuration; freeze feature development after candidate verification. Do not expand networking or monitoring. Historical experimental tools remain source/history only.

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "clash-verge-rev",
   "name": "Clash Verge Rev",
-  "version": "1.3.1-rc.1",
+  "version": "1.4.0-rc.1",
   "status": "release-candidate",
   "entry": "Invoke-OcoClash.ps1",
   "modes": [

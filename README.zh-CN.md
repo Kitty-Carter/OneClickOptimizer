@@ -10,19 +10,19 @@
 
 | Positron | Clash Verge Rev |
 | :---: | :---: |
-| **科研工作流配置优化** | **Clash 配置与节点优化** |
-| v0.1.0-alpha.1 · Windows 预览 | v1.3.1-rc.1 · Windows 候选版 |
-| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v1.3.1-rc.1/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
-| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v1.3.1-rc.1) · [模块指南](modules/clash-verge-rev) |
-| 七项工作流配置、检查及备份 | 最小缺失项补全、按需诊断及可恢复写入 |
+| **科研工作流配置优化** | **Clash 一键配置优化** |
+| v0.1.0-alpha.1 · Windows 预览 | v1.4.0-rc.1 · Windows 候选版 |
+| [![下载 Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![下载 Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v1.4.0-rc.1/Clash-OneClick-Config.bat) |
+| [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [模块指南](modules/positron) | [发布说明](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v1.4.0-rc.1) · [模块指南](modules/clash-verge-rev) |
+| 七项工作流配置、检查及备份 | 单个 BAT · 公共 DNS、AI 固定出口及轻量配置 |
 
 ## 快速开始
 
-下载对应模块的独立 ZIP，完整解压。Clash 的 Start.bat 提供中文菜单，检查、优化、恢复、按需诊断、节点筛选及生成配置验证；策略组写入已关闭，仅生成候选。
+Positron 仍下载并完整解压原独立 ZIP。Clash 只下载单个 BAT：先启动支持版本一次，正常退出 Clash，双击 BAT 检查或应用。重新启动后导入/激活自己的订阅，并手动选择 AI 固定出口节点。
 
 ## 安全与兼容性
 
-Positron 为预览版，Clash 为稳定性候选版，尚未完成真实激活、断网恢复和第二独立 Windows 环境验收。Clash 自动写入限已验证版本；自定义配置只补缺失白名单字段。优化后需手动重新激活订阅并验证。不含实时网络或电脑监视，不自动切换 AI 出口。
+Clash 1.4.0-rc.1 面向 Windows 的 Clash Verge Rev 2.5.10 / 内置 Mihomo 1.19.33。复现公共 DNS、26条 AI 域名规则与轻量设置，不含私人订阅或凭据。发现自定义全局脚本或订阅专属 DNS 覆盖时拒绝写入。TUN、系统代理和 AI 节点选择仍需手动确认。备份及恢复在本机进行，不覆盖后续修改。新交付不含节点扫描或监视器，不保证提速；全新独立电脑实际激活及跨机恢复尚待验证。Positron 仍为独立预览版。
 
 [源码 ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) · [模块契约](docs/MODULE-CONTRACT.md) · [路线图](docs/ROADMAP.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md)
 

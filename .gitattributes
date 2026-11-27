@@ -5,3 +5,5 @@
 *.md text eol=lf
 *.json text eol=lf
 *.yml text eol=lf
+
+modules/clash-verge-rev/Clash-OneClick-Config.bat -text !eol whitespace=cr-at-eol

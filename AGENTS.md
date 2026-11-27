@@ -26,3 +26,6 @@ Integrated 1.3 acceptance: recovery resumes the original manifest; RESTORING and
 
 
 Clash 1.3.1 minimum scope: all production optimization uses the existing missing-only merge path. Do not force DNS or AI rules, overwrite Script.js, migrate user extensions, or add policy-candidate menus. Preserve Positron and old release assets. No background monitors.
+
+
+Clash 1.4.0-rc.1 supersedes earlier default scope for NEW distribution: one shared public configuration BAT, check/apply/restore only. No private node/subscription data, no forced activation, no new performance experiments. Preserve legacy releases and Positron. Freeze after validation.

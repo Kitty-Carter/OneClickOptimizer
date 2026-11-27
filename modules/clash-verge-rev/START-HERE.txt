@@ -1,2 +1,2 @@
-Clash Verge Rev Optimizer v1.3.1-rc.1 | Minimal candidate
-Extract ALL files. Start.bat: 1 check, 2 add only three absent global Merge keys, 3 restore, 5 diagnose, V/G structural audit, R recovery list. No DNS/AI/Script.js overwrite or download policy generation. Existing working configurations need no repeated apply. Close Clash normally before writes; reactivate manually and verify. No monitoring. Candidate only.
+Clash 1.4.0-rc.1 | Single BAT candidate
+Download Clash-OneClick-Config.bat only. Start supported Clash once, quit normally. C check / A apply / R restore / Q quit. Start Clash and reactivate your own subscription, select your AI node. System proxy/TUN activation manual. No private nodes, no monitoring. Read README.md for limitations.
