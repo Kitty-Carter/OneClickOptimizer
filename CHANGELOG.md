@@ -18,3 +18,9 @@
 - Equal module navigation and standalone preview packaging.
 - Optional disk, GPU busiest-engine and battery counters; background sampling, monotonic network timestamps, Lite launcher.
 - Expanded rate assertions; unavailable hardware remains N/A.
+
+## Clash 0.3.0-alpha.1
+
+- Rust/Win32 native basic monitor, separate from richer hardware window.
+- Exact bundled core gate and guarded two-extension restore, fixture round-trip and refusal tests.
+- Closed-loop acceptance rules; retain historical releases and native integration as future work.

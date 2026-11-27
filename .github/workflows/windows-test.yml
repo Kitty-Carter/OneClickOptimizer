@@ -35,3 +35,9 @@ jobs:
       - name: Compile and test network monitor
         shell: powershell
         run: powershell.exe -NoProfile -STA -File .\modules\clash-verge-rev\Monitor-Clash.ps1 -SelfTest
+      - name: Test and build native Rust monitor
+        shell: powershell
+        run: |
+          cargo test --locked --manifest-path modules/clash-verge-rev/native-monitor/Cargo.toml
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cargo build --release --locked --manifest-path modules/clash-verge-rev/native-monitor/Cargo.toml
