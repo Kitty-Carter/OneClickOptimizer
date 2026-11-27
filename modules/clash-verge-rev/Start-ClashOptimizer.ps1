@@ -9,7 +9,7 @@ function Valid-App([string]$p){
 }
 function Valid-Data([string]$p){
  if(!$p){return $false}
- try{foreach($n in @('verge.yaml','profiles.yaml','profiles\Merge.yaml','profiles\Script.js')){if(!(Test-Path -LiteralPath (Join-Path $p $n) -PathType Leaf)){return $false}};return $true}catch{return $false}
+ try{if((Get-Item -LiteralPath $p -ErrorAction Stop).Attributes -band [IO.FileAttributes]::ReparsePoint){return $false};foreach($n in @('verge.yaml','profiles.yaml','profiles\Merge.yaml','profiles\Script.js')){if(!(Test-Path -LiteralPath (Join-Path $p $n) -PathType Leaf)){return $false}};return $true}catch{return $false}
 }
 function Extract-Exe([string]$s){
  if(!$s){return}
@@ -108,6 +108,10 @@ function Run-Node([string[]]$args1){
  Say "节点检测退出码：$LASTEXITCODE"
 }
 try{
+ if(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'package-manifest.json')){
+  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Verify-Package.ps1') -Required
+  if($LASTEXITCODE){throw '软件包校验失败，请重新下载并完整解压。'}
+ }
  if($SelfTest){
   $tmp=Join-Path ([IO.Path]::GetTempPath()) ('OCO path test '+[guid]::NewGuid().ToString('N'))
   try{
@@ -123,21 +127,22 @@ try{
    'DISCOVERY_SELFTEST_OK';exit 0
   }finally{Remove-Item -LiteralPath $tmp -Recurse -Force}
  }
+ if($AppPath -and !(Valid-App $AppPath)){throw '显式客户端路径无效，不会自动改选其他安装。'}
+ if($DataPath -and !(Valid-Data $DataPath)){throw '显式数据路径无效，不会自动改选其他配置。'}
  Locate
- if(!$explicitPort){
-  $runtime=Join-Path $DataPath 'clash-verge.yaml'
-  if(Test-Path -LiteralPath $runtime -PathType Leaf){
-   $matchesPort=@(Get-Content -LiteralPath $runtime -Encoding UTF8|Where-Object {$_ -match '^mixed-port:\s*[0-9]+\s*(?:#.*)?$'})
-   if($matchesPort.Count -eq 1 -and $matchesPort[0] -match '^mixed-port:\s*([0-9]+)'){
-    $n=0;if([int]::TryParse($Matches[1],[ref]$n) -and $n -ge 1 -and $n -le 65535){$Port=$n}
-   }
-  }
+ function Read-Port{
+  $runtime=Join-Path $script:DataPath 'clash-verge.yaml'
+  $v=& (Join-Path $PSScriptRoot 'bin\oco-node-quality.exe') --mixed-port $runtime
+  $n=0
+  if($LASTEXITCODE -eq 0 -and [int]::TryParse([string]$v,[ref]$n) -and $n -ge 1 -and $n -le 65535){$script:Port=$n}else{$script:Port=0}
  }
- Say "客户端：$AppPath";Say "数据目录：$DataPath";Say "混合代理端口：$Port"
+ if(!$explicitPort){Read-Port}
+ Say "客户端：$AppPath";Say "数据目录：$DataPath";Say "混合代理端口：$Port（0表示未确认）"
  if($DiscoverOnly){exit 0}
  if($Action -ne 'Menu'){
   $argv=@('-DataPath',$DataPath,'-AppPath',$AppPath)
   if($Action -eq 'Check'){$argv+='-CheckOnly'}
+  if($Action -eq 'Optimize'){$argv+='-ConservativeAuto'}
   if($Action -eq 'Restore'){$argv+='-RestorePrompt'}
   & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Optimize-Clash.ps1') @argv
   exit $LASTEXITCODE
@@ -149,18 +154,19 @@ try{
   Say '4 独立节点检测（分批，可选深入下载及 ChatGPT HTTP 测试）'
   Say '5 当前网络诊断 / 6 IPPure 单次出口检查 / 7 本地代理状态'
   Say '8 自定义配置安全补全（仅补3个缺失字段） / 9 实测策略组候选'
-  Say '10 安全暂存已验证策略组（先退出 Clash；保留 AI 出口）'
+  Say 'V 验证生成配置 / R 查找本机恢复记录（策略组写入暂不开放）'
   Say 'A 重新选择客户端与数据目录 / P 自定义代理端口 / 0 退出'
   $choice=(Read-Host '请选择').Trim()
   try{
    switch($choice){
     '1'{Run-PS 'Optimize-Clash.ps1' @('-CheckOnly','-DataPath',$DataPath)}
-    '2'{Say '先正常退出 Clash；工具不会强制退出或覆盖自定义扩展。';Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath)}
+    '2'{Say '先正常退出 Clash；工具不会强制退出或覆盖自定义值；自定义 YAML 仅补安全缺失项。';Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath,'-ConservativeAuto')}
     '3'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-RestorePrompt')}
     '4'{
      $core=Join-Path (Split-Path -Parent $AppPath) 'verge-mihomo.exe'
      $cfg=Join-Path $DataPath 'clash-verge.yaml'
      Run-Node @('--list',$cfg,$core)
+     if($LASTEXITCODE){throw '无法识别节点，停止操作。'}
      $batch=0
      $selection=(Read-Host '输入批次编号（每批最多6个）；ALL 一次初筛全部（最多120个）；0取消').Trim()
      if($selection -ieq 'ALL'){Run-Node @('--scan',$cfg,$core,'--all')}
@@ -170,14 +176,15 @@ try{
       Run-Node $args1
      }
     }
-    '5'{if((Read-Host '发送6次HTTPS请求？[Y/N]') -match '^[Yy]$'){Run-PS 'Diagnose-Clash.ps1' @('-Port',[string]$Port,'-Rounds','2')}}
-    '6'{Run-PS 'Diagnose-Clash.ps1' @('-Port',[string]$Port,'-ExitPrompt')}
-    '7'{Run-PS 'Inspect-Local.ps1' @('-Port',[string]$Port)}
+    '5'{if($Port -eq 0){throw '未确认代理端口，请先使用 P 指定。'};if((Read-Host '发送6次HTTPS请求？[Y/N]') -match '^[Yy]$'){Run-PS 'Diagnose-Clash.ps1' @('-Port',[string]$Port,'-Rounds','2')}}
+    '6'{if($Port -eq 0){throw '未确认代理端口，请先使用 P 指定。'};Run-PS 'Diagnose-Clash.ps1' @('-Port',[string]$Port,'-ExitPrompt')}
+    '7'{if($Port -eq 0){throw '未确认代理端口，请先使用 P 指定。'};Run-PS 'Inspect-Local.ps1' @('-Port',[string]$Port)}
     '8'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath,'-AddMissing')}
     '9'{
      $core=Join-Path (Split-Path -Parent $AppPath) 'verge-mihomo.exe'
      $cfg=Join-Path $DataPath 'clash-verge.yaml'
      Run-Node @('--list',$cfg,$core)
+     if($LASTEXITCODE){throw '无法识别节点，停止操作。'}
      $n=0;$choice9=(Read-Host '输入 AUTO 全量初筛后深测前6；或批次号（3次204+2次1MiB）；0取消').Trim()
      $auto=($choice9 -ieq 'AUTO')
      if($auto -or ([int]::TryParse($choice9,[ref]$n) -and $n -gt 0)){
@@ -195,20 +202,14 @@ try{
        $file=Join-Path $folder 'policy-groups.yaml'
        $argv=@('--scan',$cfg,$core,'--recommend',$file);if($auto){$argv+='--auto'}else{$argv+=@('--batch',[string]$n)}
        Run-Node $argv
-       if(Test-Path -LiteralPath $file -PathType Leaf){Say "候选片段（不包含认证参数）：$file";Say '候选需在1小时内使用菜单10暂存；不可直接覆盖全局 Merge.yaml。未修改正式策略组。'}
+       if(Test-Path -LiteralPath $file -PathType Leaf){Say "候选片段（不包含认证参数）：$file";Say '候选仅供审查与实验，不可直接覆盖全局 Merge.yaml。未修改正式策略组。'}
        else{Remove-Item -LiteralPath $folder -Force}
       }catch{Write-Warning '未完成策略组候选生成';throw}
      }
     }
-    '10'{
-     $cfg=Join-Path $DataPath 'clash-verge.yaml'
-     Say '候选可追加到以下非 AI 的现有手动选择组：'
-     Run-Node @('--parents',$cfg)
-     $parent=(Read-Host '输入现有组的准确名称（不能选 AI 固定出口）').Trim()
-     $proposal=(Read-Host '输入菜单9生成的 policy-groups.yaml 完整路径').Trim().Trim([char]34)
-     if($parent -and $proposal){Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-AppPath',$AppPath,'-PolicyFrom',$proposal,'-PolicyParent',$parent)}
-    }
-    'A'{$oldApp=$script:AppPath;$oldData=$script:DataPath;$script:AppPath=(Read-Host '请输入实际 clash-verge.exe 完整路径').Trim().Trim([char]34);$script:DataPath=(Read-Host '请输入实际数据目录').Trim().Trim([char]34);if(!(Valid-App $script:AppPath) -or !(Valid-Data $script:DataPath)){$script:AppPath=$oldApp;$script:DataPath=$oldData;throw '路径无效，保留原选择'};Locate;Say "客户端：$AppPath";Say "数据目录：$DataPath";Say "若端口不同，请使用 P 明确设置。"}
+    'V'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-Verify')}
+    'R'{Run-PS 'Optimize-Clash.ps1' @('-DataPath',$DataPath,'-RecoveryList')}
+    'A'{$oldApp=$script:AppPath;$oldData=$script:DataPath;$script:AppPath=(Read-Host '请输入实际 clash-verge.exe 完整路径').Trim().Trim([char]34);$script:DataPath=(Read-Host '请输入实际数据目录').Trim().Trim([char]34);if(!(Valid-App $script:AppPath) -or !(Valid-Data $script:DataPath)){$script:AppPath=$oldApp;$script:DataPath=$oldData;throw '路径无效，保留原选择'};Locate;Say "客户端：$AppPath";Say "数据目录：$DataPath";Read-Port;Say "混合代理端口：$Port"}
     'P'{$v=0;if([int]::TryParse((Read-Host '本地混合端口'),[ref]$v) -and $v -ge 1 -and $v -le 65535){$Port=$v}else{Say '端口无效'}}
     '0'{}
     default{Say '无效选择'}

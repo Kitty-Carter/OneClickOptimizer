@@ -52,3 +52,9 @@
 - Automatic installation discovery, conservative structured missing-only YAML merge and ACL-restricted backups.
 - Rust bounded three-worker screening, repeated download sampling, native candidate groups, source/node fingerprint and expiry checks, explicit staging with original script recovery.
 - No modified client, no automatic AI selection, no live TUN/DNS switch. Preview only.
+
+## Clash 1.2.0-rc.1 | Stability candidate
+
+- Durable write journal, target-bound backup identity, process mutex, actual child-exit fault injection and exact recovery.
+- Package integrity checks, generated runtime verification, strict explicit path and YAML port parsing, guided recovery list.
+- One-click safe fallback for custom YAML, preserves explicit fields and custom JS; experimental policy write removed from regular menu. No TUN/MTU changes or monitoring.

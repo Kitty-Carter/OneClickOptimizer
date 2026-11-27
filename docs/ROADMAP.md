@@ -10,3 +10,5 @@
 Branch strategy: main for reviewed snapshots, feature/<module> for development, fix/<issue> for fixes. Public repository as explicitly approved by owner. Protect main and require successful Windows CI when available.
 
 Clash focused preview 1.1: configuration optimization, safe missing-only merge, repeatable node screening and evidence-bound native candidate groups. Real-time hardware/network monitoring and native client modification are out of scope. Pending: independent live network recovery, DNS/TLS/UDP and TUN/MTU comparisons, broader compatibility, sustained performance, authenticated service and multi-machine validation. No stable claim.
+
+Clash 1.2 stability candidate: transaction recovery, package integrity, strict path/port detection and generated runtime checks. Remaining stable gates: actual fresh install apply/activation/restore on additional PC, selected policy group expiry/reload, independent live disconnect recovery. TUN and adaptive DNS remain out of default scope.

@@ -144,6 +144,131 @@ mod app {
             .map_err(|_| "YAML parse failed (details hidden)".into())
     }
     // Only add absent settings. Never overwrite explicit values or merge DNS.
+    // Generated runtime observation only. Never claim that file bytes prove packet routing.
+    fn runtime_checks(v: &Value) -> Vec<(&'static str, bool)> {
+        let base: Value = serde_yaml_ng::from_str(include_str!("../../presets/Merge.yaml"))
+            .expect("embedded preset");
+        let mut result = vec![(
+            "tcp-concurrent",
+            v.get("tcp-concurrent") == Some(&Value::Bool(true)),
+        )];
+        for (name, k) in [
+            ("profile.store-selected", "store-selected"),
+            ("profile.store-fake-ip", "store-fake-ip"),
+        ] {
+            result.push((
+                name,
+                v.get("profile").and_then(|x| x.get(k)) == Some(&Value::Bool(true)),
+            ));
+        }
+        for k in [
+            "enable",
+            "enhanced-mode",
+            "fake-ip-range",
+            "cache-algorithm",
+            "prefer-h3",
+            "use-hosts",
+            "use-system-hosts",
+            "respect-rules",
+            "default-nameserver",
+            "proxy-server-nameserver",
+            "nameserver",
+            "fallback",
+            "fallback-filter",
+            "fallback-lazy-query",
+        ] {
+            let actual = v.get("dns").and_then(|d| d.get(k));
+            let expected = base.get("dns").and_then(|d| d.get(k));
+            result.push((k, actual.is_some() && actual == expected));
+        }
+        let ai = "AI-固定出口";
+        let groups = v.get("proxy-groups").and_then(Value::as_sequence);
+        let g = groups
+            .map(|x| {
+                x.iter()
+                    .filter(|g| g.get("name").and_then(Value::as_str) == Some(ai))
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        let inline = v.get("proxies").and_then(Value::as_sequence);
+        let good = if g.len() == 1 {
+            let g = g[0];
+            let members = g.get("proxies").and_then(Value::as_sequence);
+            g.get("type").and_then(Value::as_str) == Some("select")
+                && g.get("empty-fallback").and_then(Value::as_str) == Some("REJECT")
+                && g.get("use")
+                    .and_then(Value::as_sequence)
+                    .is_none_or(|x| x.is_empty())
+                && [
+                    "include-all",
+                    "include-all-proxies",
+                    "include-all-providers",
+                ]
+                .iter()
+                .all(|k| g.get(*k).is_none_or(|x| x == &Value::Bool(false)))
+                && members.is_some_and(|ms| {
+                    !ms.is_empty()
+                        && ms.iter().all(|x| {
+                            let Some(n) = x.as_str() else { return false };
+                            if [
+                                "DIRECT",
+                                "REJECT",
+                                "REJECT-DROP",
+                                "PASS",
+                                "COMPATIBLE",
+                                "GLOBAL",
+                                ai,
+                            ]
+                            .contains(&n)
+                            {
+                                return false;
+                            }
+                            inline.is_some_and(|nodes| {
+                                let found = nodes
+                                    .iter()
+                                    .filter(|p| p.get("name").and_then(Value::as_str) == Some(n))
+                                    .collect::<Vec<_>>();
+                                found.len() == 1
+                                    && found[0].get("type").and_then(Value::as_str).is_some_and(
+                                        |t| {
+                                            ![
+                                                "direct",
+                                                "reject",
+                                                "reject-drop",
+                                                "pass",
+                                                "pass-rule",
+                                                "compatible",
+                                            ]
+                                            .contains(&t.to_ascii_lowercase().as_str())
+                                        },
+                                    )
+                            })
+                        })
+                })
+        } else {
+            false
+        };
+        result.push(("AI inline selector/no direct fallback", good));
+        let domains = [
+            "chatgpt.com",
+            "openai.com",
+            "oaistatic.com",
+            "oaiusercontent.com",
+            "oaistatsig.com",
+            "cdn.openaimerge.com",
+        ];
+        let rules = v.get("rules").and_then(Value::as_sequence);
+        result.push((
+            "AI first-match rule prefix",
+            rules.is_some_and(|r| {
+                r.len() >= domains.len()
+                    && domains.iter().enumerate().all(|(i, d)| {
+                        r[i].as_str() == Some(format!("DOMAIN-SUFFIX,{d},{ai}").as_str())
+                    })
+            }),
+        ));
+        result
+    }
     fn merge_safe(v: &Value) -> Result<(Value, usize), String> {
         if !plain(v, 0) {
             return Err("Unsupported YAML structure".into());
@@ -1033,6 +1158,35 @@ mod app {
     }
     pub fn run() -> Result<i32, String> {
         let a: Vec<_> = env::args_os().skip(1).collect();
+        if a.first().is_some_and(|x| x == "--mixed-port") {
+            if a.len() != 2 {
+                return Err("Usage: --mixed-port runtime".into());
+            }
+            let c = read_yaml(Path::new(&a[1]))?;
+            let p = c
+                .get("mixed-port")
+                .and_then(Value::as_u64)
+                .filter(|p| (1..=65535).contains(p))
+                .ok_or("No valid mixed-port")?;
+            println!("{p}");
+            return Ok(0);
+        }
+        if a.first().is_some_and(|x| x == "--verify-runtime") {
+            if a.len() != 2 {
+                return Err("Usage: --verify-runtime runtime".into());
+            }
+            let c = read_yaml(Path::new(&a[1]))?;
+            let checks = runtime_checks(&c);
+            let mut pass = 0;
+            for (k, ok) in &checks {
+                if *ok {
+                    pass += 1;
+                }
+                println!("{} {}", if *ok { "MATCH" } else { "DIFF_OR_UNVERIFIED" }, k);
+            }
+            println!("{pass}/{} generated-runtime checks matched. No packet, DNS leak, authenticated access, or selected-node proof.",checks.len());
+            return Ok(if pass == checks.len() { 0 } else { 2 });
+        }
         if a.first().is_some_and(|x| x == "--compose-policy") {
             if a.len() != 6 {
                 return Err(
@@ -1137,6 +1291,31 @@ mod app {
                 "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
             );
             assert_eq!(canon(&key("A"), 0)?, "s0041;");
+            let mut cfg: Value =
+                serde_yaml_ng::from_str(include_str!("../../presets/Merge.yaml")).unwrap();
+            cfg["proxies"] = serde_yaml_ng::from_str("[{name: fixture, type: vless}]").unwrap();
+            cfg["proxy-groups"] = serde_yaml_ng::from_str(
+                "[{name: 'AI-固定出口',type: select,proxies: [fixture],empty-fallback: REJECT}]",
+            )
+            .unwrap();
+            cfg["rules"] = Value::Sequence(
+                [
+                    "chatgpt.com",
+                    "openai.com",
+                    "oaistatic.com",
+                    "oaiusercontent.com",
+                    "oaistatsig.com",
+                    "cdn.openaimerge.com",
+                ]
+                .iter()
+                .map(|d| key(&format!("DOMAIN-SUFFIX,{d},AI-固定出口")))
+                .collect(),
+            );
+            assert!(runtime_checks(&cfg).iter().all(|x| x.1));
+            cfg["proxy-groups"][0]["proxies"] = serde_yaml_ng::from_str("[DIRECT]").unwrap();
+            assert_eq!(runtime_checks(&cfg).iter().filter(|x| !x.1).count(), 1);
+            cfg["rules"][0] = key("MATCH,DIRECT");
+            assert_eq!(runtime_checks(&cfg).iter().filter(|x| !x.1).count(), 2);
             println!("NODE_QUALITY_SELFTEST_OK");
             return Ok(0);
         }

@@ -1,12 +1,12 @@
 ﻿[CmdletBinding()]
-param([switch]$CheckOnly,[switch]$SelfTest,[string]$DataPath,[string]$BackupRoot,[string]$RestoreFrom,[switch]$RestorePrompt,[string]$AppPath,[switch]$AddMissing,[string]$PolicyFrom,[string]$PolicyParent)
+param([switch]$CheckOnly,[switch]$SelfTest,[string]$DataPath,[string]$BackupRoot,[string]$RestoreFrom,[switch]$RestorePrompt,[string]$AppPath,[switch]$AddMissing,[string]$PolicyFrom,[string]$PolicyParent,[switch]$Verify,[switch]$RecoveryList,[switch]$ConservativeAuto,[switch]$AllowExperimentalPolicy,[switch]$FixtureCrash,[string]$FixturePath)
 $ErrorActionPreference='Stop'
 $utf8=New-Object System.Text.UTF8Encoding($false)
 $files=@('Merge.yaml','Script.js')
 function Hash([byte[]]$b){$sha=[Security.Cryptography.SHA256]::Create();try{[BitConverter]::ToString($sha.ComputeHash($b)).Replace('-','')}finally{$sha.Dispose()}}
 function ReadBytes([string]$p){[IO.File]::ReadAllBytes($p)}
 function IsDefault([string]$n,[byte[]]$b){
- $t=$utf8.GetString($b).TrimStart([char]0xFEFF)
+ try{$t=(New-Object Text.UTF8Encoding($false,$true)).GetString($b).TrimStart([char]0xFEFF)}catch{return $false}
  if($n -eq 'Merge.yaml'){return (($t -split '\r?\n' | Where-Object {$_ -notmatch '^\s*(#.*)?$'}) -join '').Trim() -in @('','{}')}
  $t=($t -split '\r?\n' | Where-Object {$_ -notmatch '^\s*(//.*)?$'}) -join ' '
  return ($t.Trim() -eq '' -or $t.Trim() -match '^function\s+main\s*\(\s*config\s*(,\s*profileName\s*)?\)\s*\{\s*return\s+config\s*;?\s*\}\s*;?$')
@@ -43,7 +43,7 @@ function SafeMerge([byte[]]$old){
  try{
   PrivateDir $t
   $a=Join-Path $t 'input.yaml';$b=Join-Path $t 'candidate.yaml'
-  [IO.File]::WriteAllBytes($a,$old)
+  if(IsDefault 'Merge.yaml' $old){[IO.File]::WriteAllText($a,'{}',$utf8)}else{[IO.File]::WriteAllBytes($a,$old)}
   $exe=Join-Path $PSScriptRoot 'bin\oco-node-quality.exe'
   & $exe --merge-safe $a $b | Out-Host
   $rc=$LASTEXITCODE
@@ -80,9 +80,80 @@ function Plan([string]$dir,[switch]$MissingOnly){
   [pscustomobject]@{Name=$n;Path=$p;Old=$old;New=$new;State=$state}
  }
 }
+# Persistent state records are advisory; recovery always verifies actual original/new hashes.
+function Write-AtomicText([string]$p,[string]$text){
+ $tmp=$p+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+ try{
+  $bytes=$utf8.GetBytes($text)
+  $f=New-Object IO.FileStream($tmp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+  try{$f.Write($bytes,0,$bytes.Length);$f.Flush($true)}finally{$f.Dispose()}
+  if(Test-Path -LiteralPath $p){[IO.File]::Replace($tmp,$p,($tmp+".swap"));Remove-Item -LiteralPath ($tmp+".swap") -Force}else{[IO.File]::Move($tmp,$p)}
+ }finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
+}
+function Assert-PlainPath([string]$p){
+ $item=Get-Item -LiteralPath $p -ErrorAction Stop
+ while($item){
+  if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse path refused'}
+  $item=if($item -is [IO.FileInfo]){$item.Directory}else{$item.Parent}
+ }
+}
+function TargetId([string]$dir){Hash ($utf8.GetBytes([IO.Path]::GetFullPath($dir).TrimEnd([char]92).ToUpperInvariant()))}
+function Enter-TargetLock([string]$dir){
+ $name='Local\OCO-Clash-'+(TargetId $dir)
+ $mutex=New-Object Threading.Mutex($false,$name)
+ try{
+  try{$held=$mutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$held=$true}
+  if(!$held){throw 'Another optimizer is operating on this configuration; retry after it exits.'}
+  return $mutex
+ }catch{$mutex.Dispose();throw}
+}
+function Assert-Stopped {
+ if(Get-Process clash-verge,verge-mihomo,verge-mihomo-alpha,mihomo -ErrorAction SilentlyContinue){throw 'Close Clash and its core normally before applying. No forced shutdown.'}
+}
+function Set-Journal([string]$backup,[string]$status){
+ Write-AtomicText (Join-Path $backup 'state.txt') $status
+}
+function Show-Recovery([string]$root,[string]$dir){
+ if(!(Test-Path -LiteralPath $root -PathType Container)){Write-Host 'No recovery backups found.';return}
+ Assert-PlainPath $root
+ foreach($b in @(Get-ChildItem -LiteralPath $root -Directory -Filter 'clash-*'|Sort-Object LastWriteTime -Descending)){
+  try{
+   Assert-PlainPath $b.FullName
+   $id=Join-Path $b.FullName 'target.txt';$state=Join-Path $b.FullName 'state.txt'
+   if(!(Test-Path -LiteralPath $id -PathType Leaf)){continue}
+   Assert-PlainPath $id
+   if([IO.File]::ReadAllText($id) -ne (TargetId $dir)){continue}
+   Assert-PlainPath $id
+   $label=if(Test-Path -LiteralPath $state){Assert-PlainPath $state;[IO.File]::ReadAllText($state)}else{'UNKNOWN'}
+   $plan=@(RestorePlan $dir $b.FullName)
+   $match=if(@($plan|Where-Object State -eq 'custom').Count){'LATER_EDIT'}elseif(@($plan|Where-Object State -eq 'ready').Count){'RECOVERABLE'}else{'ALREADY_ORIGINAL'}
+   Write-Host "$label / $match : $($b.FullName)"
+  }catch{Write-Warning 'Unreadable or inconsistent recovery record; not auto-restored.'}
+ }
+}
+function Assert-NoPending([string]$root,[string]$dir){
+ if(!(Test-Path -LiteralPath $root -PathType Container)){return}
+ Assert-PlainPath $root
+ foreach($b in @(Get-ChildItem -LiteralPath $root -Directory -Filter 'clash-*')){
+  Assert-PlainPath $b.FullName
+  $id=Join-Path $b.FullName 'target.txt';$state=Join-Path $b.FullName 'state.txt'
+  if((Test-Path -LiteralPath $id -PathType Leaf) -and [IO.File]::ReadAllText($id) -eq (TargetId $dir)){
+   Assert-PlainPath $id
+   $label=if(Test-Path -LiteralPath $state){Assert-PlainPath $state;[IO.File]::ReadAllText($state)}else{'UNKNOWN'}
+   if($label -in @('PREPARED','WRITING','RECOVERY_REQUIRED','UNKNOWN')){
+    $rp=@(RestorePlan $dir $b.FullName)
+    if(@($rp|Where-Object State -ne 'same').Count){throw "Interrupted transaction detected. Restore this backup first: $($b.FullName)"}
+    Set-Journal $b.FullName 'ROLLED_BACK'
+   }
+  }
+ }
+}
 function RestorePlan([string]$dir,[string]$backup){
  if(!(Test-Path -LiteralPath $backup -PathType Container)){throw 'Backup directory not found'}
- if((Get-Item -LiteralPath $backup).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Backup reparse point not supported'}
+ Assert-PlainPath $backup
+ $id=Join-Path $backup 'target.txt'
+ if(Test-Path -LiteralPath $id -PathType Leaf){Assert-PlainPath $id;if([IO.File]::ReadAllText($id) -ne (TargetId $dir)){throw 'Backup belongs to a different configuration directory'}}
+ else{throw 'Legacy backup has no target identity. Use its original v1.1 tool for manual restore.'}
  $manifestPath=Join-Path $backup 'manifest.json'
  if(!(Test-Path -LiteralPath $manifestPath -PathType Leaf)){throw 'Backup manifest missing'}
  if((Get-Item -LiteralPath $manifestPath).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Manifest reparse point not supported'}
@@ -102,23 +173,30 @@ function RestorePlan([string]$dir,[string]$backup){
   [pscustomobject]@{Name=$n;Path=$p;Old=$old;New=$new;State=$state}
  }
 }
-function Apply($plan,[string]$root,[switch]$Fixture,[switch]$InjectFailure){
- if($InjectFailure -and !$Fixture){throw "Fault injection restricted to fixture"}
+function Apply($plan,[string]$root,[switch]$Fixture,[switch]$InjectFailure,[switch]$CrashAfterFirst){
+ if(($InjectFailure -or $CrashAfterFirst) -and !$Fixture){throw "Fault injection restricted to fixture"}
  if(@($plan|Where-Object State -eq 'custom').Count){throw 'Custom extensions detected. Refusing to overwrite.'}
  $change=@($plan|Where-Object State -eq 'ready')
  if(!$change.Count){return}
- if(!$Fixture -and (Get-Process clash-verge,verge-mihomo -ErrorAction SilentlyContinue)){throw 'Close Clash normally before applying; no automatic shutdown.'}
+ if(!$Fixture){Assert-Stopped}
+ $dir=Split-Path -Parent $plan[0].Path
+ Assert-PlainPath $dir
  if(!$root){throw 'Backup root required'}
  $b=Join-Path $root ('clash-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N'))
  if(!(Test-Path -LiteralPath $root -PathType Container)){New-Item -ItemType Directory -Path $root -Force|Out-Null}
+ Assert-PlainPath $root
  PrivateDir $b
  foreach($x in $plan){
   $bp=Join-Path $b $x.Name
-  [IO.File]::WriteAllBytes($bp,$x.Old)
+  $f=New-Object IO.FileStream($bp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+  try{$f.Write($x.Old,0,$x.Old.Length);$f.Flush($true)}finally{$f.Dispose()}
   if((Hash (ReadBytes $bp)) -ne (Hash $x.Old)){throw 'Backup readback failed before write'}
  }
  $manifest=@($plan|ForEach-Object{[pscustomobject]@{name=$_.Name;before=(Hash $_.Old);after=(Hash $_.New)}})
- [IO.File]::WriteAllText((Join-Path $b 'manifest.json'),(ConvertTo-Json -InputObject $manifest -Depth 3),$utf8)
+ Write-AtomicText (Join-Path $b 'manifest.json') (ConvertTo-Json -InputObject $manifest -Depth 3)
+ Write-AtomicText (Join-Path $b 'target.txt') (TargetId $dir)
+ Set-Journal $b 'PREPARED'
+ Write-Host "Recovery backup: $b"
  # Check the complete backup manifest and both source files before mutation.
  $backManifest=ConvertFrom-Json -InputObject (Get-Content -LiteralPath (Join-Path $b 'manifest.json') -Raw -Encoding UTF8)
  foreach($x in $plan){
@@ -128,32 +206,57 @@ function Apply($plan,[string]$root,[switch]$Fixture,[switch]$InjectFailure){
  }
  $done=@()
  try{
+  Set-Journal $b 'WRITING'
   foreach($x in $change){
+   if(!$Fixture){Assert-Stopped}
+   Assert-PlainPath $x.Path
    if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){throw 'Concurrent edit detected'}
    $tmp=$x.Path+'.oco-'+[guid]::NewGuid().ToString('N')
    try{
-    [IO.File]::WriteAllBytes($tmp,$x.New)
+    $f=New-Object IO.FileStream($tmp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try{$f.Write($x.New,0,$x.New.Length);$f.Flush($true)}finally{$f.Dispose()}
     [IO.File]::Replace($tmp,$x.Path,($tmp+".swap"))
     $done+=,$x
     Remove-Item -LiteralPath ($tmp+".swap") -Force
     if((Hash (ReadBytes $x.Path)) -ne (Hash $x.New)){throw 'Readback failed'}
+    if($CrashAfterFirst -and $done.Count -eq 1){[Environment]::Exit(77)}
     if($InjectFailure -and $done.Count -eq 1){throw 'Injected fixture failure after first write'}
    }finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
   }
   foreach($x in $plan){if((Hash (ReadBytes $x.Path)) -ne (Hash $x.New)){throw "Final transaction readback failed"}}
+  Set-Journal $b 'COMMITTED'
  }catch{
+  $reason=$_.Exception.Message;$failed=$false
+  # Independent per-file attempts: do not stop recovery of the second file if the first failed.
   foreach($x in $done){
-   if((Hash (ReadBytes $x.Path)) -eq (Hash $x.New)){
+   try{
+    if(!$Fixture){Assert-Stopped}
+    Assert-PlainPath $x.Path
+    if((Hash (ReadBytes $x.Path)) -ne (Hash $x.New)){throw 'Later edit or unknown file state'}
     $tmp=$x.Path+'.restore-'+[guid]::NewGuid().ToString('N')
-    try{[IO.File]::WriteAllBytes($tmp,$x.Old);[IO.File]::Replace($tmp,$x.Path,($tmp+".swap")); Remove-Item -LiteralPath ($tmp+".swap") -Force; if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){throw "Rollback readback failed: $($x.Name); recovery backup: $b"}}finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
-   }
+    try{[IO.File]::WriteAllBytes($tmp,$x.Old);[IO.File]::Replace($tmp,$x.Path,($tmp+".swap")); Remove-Item -LiteralPath ($tmp+".swap") -Force; if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){throw 'Rollback readback failed'}}finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
+   }catch{$failed=$true;Write-Warning "Recovery needed for $($x.Name): $($_.Exception.Message)"}
   }
-  Write-Host "Recovery backup: $b";throw
+  foreach($x in $plan){try{if((Hash (ReadBytes $x.Path)) -ne (Hash $x.Old)){$failed=$true}}catch{$failed=$true}}
+  if($failed){Set-Journal $b 'RECOVERY_REQUIRED'}else{Set-Journal $b 'ROLLED_BACK'}
+  throw "$reason; recovery backup: $b"
  }
  Write-Host "Staged extensions; backup: $b"
  return $b
 }
+$lock=$null
 try{
+ if(!$FixtureCrash -and (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'package-manifest.json'))){
+  & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Verify-Package.ps1') -Required | Out-Host
+  if($LASTEXITCODE){throw 'Package integrity failed; no write'}
+ }
+ if($FixtureCrash){
+  if(!$FixturePath){throw 'Fixture path required'}
+  $f=[IO.Path]::GetFullPath($FixturePath)
+  if(!(Test-Path -LiteralPath (Join-Path $f 'OCO-CRASH-FIXTURE') -PathType Leaf) -or !(Split-Path -Leaf $f).StartsWith('oco crash fixture ') -or (Split-Path -Parent $f) -ne [IO.Path]::GetTempPath().TrimEnd([char]92)){throw 'Fixture only'}
+  $p=@(Plan $f);$null=Apply $p (Join-Path $f 'backup') -Fixture -CrashAfterFirst
+  throw 'Fixture crash not injected'
+ }
  if($SelfTest){
   $t=Join-Path ([IO.Path]::GetTempPath()) ('oco clash fixture '+[guid]::NewGuid())
   try{
@@ -199,30 +302,74 @@ try{
    if(@($again|Where-Object State -ne 'same').Count){throw 'Missing-only idempotence failed'}
    $null=Apply @(RestorePlan $t $b2) (Join-Path $t 'backup') -Fixture
    if((Hash (ReadBytes (Join-Path $t 'Merge.yaml'))) -ne (Hash $p[0].Old)){throw 'Missing-only restore failed'}
+   [IO.File]::WriteAllText((Join-Path $t 'Merge.yaml'),'# default',$utf8)
+   $p=@(Plan $t -MissingOnly)
+   if($p[0].State -ne 'ready' -or $p[1].State -ne 'same'){throw 'Empty YAML missing-only failed'}
    Write-Host 'CLASH_MISSING_ONLY_SELF_TEST_OK'
+   $wrong=Join-Path $t 'wrong';New-Item -ItemType Directory $wrong|Out-Null
+   foreach($n in $files){Copy-Item -LiteralPath (Join-Path $t $n) -Destination (Join-Path $wrong $n)}
+   $refused=$false;try{$null=@(RestorePlan $wrong $b2)}catch{$refused=$true};if(!$refused){throw 'Wrong target backup accepted'}
+   $crash=Join-Path ([IO.Path]::GetTempPath()) ('oco crash fixture '+[guid]::NewGuid())
+   try{
+    New-Item -ItemType Directory $crash|Out-Null
+    [IO.File]::WriteAllText((Join-Path $crash 'OCO-CRASH-FIXTURE'),'fixture',$utf8)
+    [IO.File]::WriteAllText((Join-Path $crash 'Merge.yaml'),'{}',$utf8)
+    [IO.File]::WriteAllText((Join-Path $crash 'Script.js'),'function main(config) { return config; }',$utf8)
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath -FixtureCrash -FixturePath $crash
+    if($LASTEXITCODE -ne 77){throw 'Crash child did not exit at first replacement'}
+    $cb=@(Get-ChildItem (Join-Path $crash 'backup') -Directory)
+    if($cb.Count -ne 1 -or [IO.File]::ReadAllText((Join-Path $cb[0].FullName 'state.txt')) -ne 'WRITING'){throw 'Crash journal not retained'}
+    $blocked=$false;try{Assert-NoPending (Join-Path $crash 'backup') $crash}catch{$blocked=$true};if(!$blocked){throw 'Interrupted transaction not blocked'}
+    $cp=@(RestorePlan $crash $cb[0].FullName)
+    if(@($cp|Where-Object State -eq 'ready').Count -ne 1){throw 'Crash partial restore plan mismatch'}
+    $null=Apply $cp (Join-Path $crash 'backup') -Fixture
+    Set-Journal $cb[0].FullName 'RECOVERED'
+    if([IO.File]::ReadAllText((Join-Path $crash 'Merge.yaml')) -ne '{}' -or [IO.File]::ReadAllText((Join-Path $crash 'Script.js')) -ne 'function main(config) { return config; }'){throw 'Crash recovery bytes mismatch'}
+    Assert-NoPending (Join-Path $crash 'backup') $crash
+   }finally{if(Test-Path -LiteralPath $crash){Remove-Item -LiteralPath $crash -Recurse -Force}}
+   $mx=Enter-TargetLock $t
+   try{
+    $job=Start-Job -ScriptBlock {param($name)$m=New-Object Threading.Mutex($false,$name);try{if($m.WaitOne(0)){$m.ReleaseMutex();'UNEXPECTED'}else{'BUSY'}}finally{$m.Dispose()}} -ArgumentList ('Local\OCO-Clash-'+(TargetId $t))
+    try{if((Receive-Job -Job $job -Wait) -ne 'BUSY'){throw 'Cross-process lock failed'}}finally{Remove-Job $job -Force}
+   }finally{$mx.ReleaseMutex();$mx.Dispose()}
+   Write-Host 'CLASH_PROCESS_DEATH_RECOVERY_AND_LOCK_OK'
    Write-Host 'CLASH_SELF_TEST_OK';exit 0
   }finally{if(Test-Path -LiteralPath $t){Remove-Item -LiteralPath $t -Recurse -Force}}
  }
+ if(($Verify -or $RecoveryList) -and ($RestorePrompt -or $RestoreFrom -or $PolicyFrom -or $AddMissing -or $ConservativeAuto -or ($Verify -and $RecoveryList))){throw 'Choose one action'}
+ if($PolicyFrom -and !$AllowExperimentalPolicy){throw 'Policy staging is experimental; use explicit -AllowExperimentalPolicy. Stable menu only generates candidates.'}
  if(($AddMissing -and ($RestorePrompt -or $RestoreFrom -or $PolicyFrom)) -or ($PolicyFrom -and ($RestorePrompt -or $RestoreFrom))){throw 'Choose one action'}
- if($RestorePrompt){
-  if($RestoreFrom){throw 'Choose only one restore input'}
-  $RestoreFrom=(Read-Host 'Enter full OCO backup directory path').Trim().Trim([char]34)
-  if(!$RestoreFrom){exit 1}
- }
  if(!$DataPath){$DataPath=Join-Path $env:APPDATA 'io.github.clash-verge-rev.clash-verge-rev'}
  $DataPath=[IO.Path]::GetFullPath($DataPath)
  if(!(Test-Path -LiteralPath (Join-Path $DataPath 'verge.yaml') -PathType Leaf)){throw 'Clash data directory not confirmed; use -DataPath explicitly.'}
  $dir=Join-Path $DataPath 'profiles'
- if((Get-Item -LiteralPath $dir).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Profiles reparse point not supported'}
+ Assert-PlainPath $dir
+ if(!$BackupRoot){$BackupRoot=Join-Path $env:LOCALAPPDATA 'OneClickOptimizer\Backups\ClashVerge'}
+ if($RestorePrompt){
+  if($RestoreFrom){throw 'Choose only one restore input'}
+  Show-Recovery $BackupRoot $dir
+  $RestoreFrom=(Read-Host 'Enter full OCO backup directory path; empty cancels').Trim().Trim([char]34)
+  if(!$RestoreFrom){exit 1}
+ }
+ if($RecoveryList){Show-Recovery $BackupRoot $dir;exit 0}
+ if($Verify){
+  $runtime=Join-Path $DataPath 'clash-verge.yaml';Assert-PlainPath $runtime
+  $exe=Join-Path $PSScriptRoot 'bin\oco-node-quality.exe'
+  & $exe --verify-runtime $runtime
+  exit $LASTEXITCODE
+ }
+ if(!$CheckOnly){$lock=Enter-TargetLock $dir}
+ if(!$RestoreFrom -and !$CheckOnly){Assert-NoPending $BackupRoot $dir}
  if($RestoreFrom){
   $p=@(RestorePlan $dir ([IO.Path]::GetFullPath($RestoreFrom)))
   $p|Select-Object Name,State|Format-Table
   if(@($p|Where-Object State -eq 'custom').Count){Write-Warning 'Later edits detected; restore refused.';exit 2}
   if($CheckOnly){exit 0}
-  if(@($p|Where-Object State -eq 'ready').Count -eq 0){Write-Host 'Original bytes already present.';exit 0}
+  if(@($p|Where-Object State -eq 'ready').Count -eq 0){Set-Journal ([IO.Path]::GetFullPath($RestoreFrom)) 'RECOVERED';Write-Host 'Original bytes already present.';exit 0}
   if((Read-Host 'Restore these two extensions only? [Y/N]') -notmatch '^[Yy]$'){exit 1}
   if(!$BackupRoot){$BackupRoot=Join-Path $env:LOCALAPPDATA 'OneClickOptimizer\Backups\ClashVerge'}
   $null=Apply $p $BackupRoot
+  Set-Journal ([IO.Path]::GetFullPath($RestoreFrom)) 'RECOVERED'
   Write-Host 'Original bytes restored. Start Clash and reactivate subscription; verify live network.'
   exit 2
  }
@@ -238,10 +385,18 @@ try{
   if((Hash (ReadBytes $runtimePath)) -ne $runtimeHash){throw 'Runtime changed during policy preparation'}
   $scriptRow.State=if((Hash $scriptRow.New) -eq (Hash $scriptRow.Old)){'same'}else{'ready'}
  }else{$p=@(Plan $dir -MissingOnly:$AddMissing)}
+ $autoReduced=$false
+ if($ConservativeAuto -and !$CheckOnly -and !$PolicyFrom -and !$AddMissing -and @($p|Where-Object State -eq 'custom').Count){
+  Write-Warning 'Custom extensions detected. Full preset is not safe; only missing allowlisted keys can be added. Existing Script.js stays unchanged.'
+  $p=@(Plan $dir -MissingOnly);$AddMissing=$true;$autoReduced=$true
+ }
  $p|Select-Object Name,State|Format-Table
  if(@($p|Where-Object State -eq 'custom').Count){Write-Warning 'Custom extensions preserved. Review guide and integrate manually.';exit 2}
  if($CheckOnly){exit 0}
- if(@($p|Where-Object State -eq 'ready').Count -eq 0){Write-Host 'Preset files already match; live behavior not checked.';exit 0}
+ if(@($p|Where-Object State -eq 'ready').Count -eq 0){
+  if($autoReduced -or $AddMissing){Write-Host 'No missing allowlisted keys; existing custom configuration preserved. Full preset not verified.';if($autoReduced){exit 2};exit 0}
+  Write-Host 'Preset files already match. Use V to verify generated config; live network not checked.';exit 0
+ }
  if($PolicyFrom){
   Write-Host 'Append measured candidates to the explicitly chosen existing select group. No route or AI selection is changed. Candidate expires on future reloads after 24h; close Clash normally first.'
   if((Read-Host 'Stage validated policy extension? [Y/N]') -notmatch '^[Yy]$'){exit 1}
@@ -267,4 +422,4 @@ try{
  $null=Apply $p $BackupRoot
  Write-Host 'Start Clash normally, reactivate the subscription, verify network and AI routing. Live activation is not automatically verified.'
  exit 2
-}catch{Write-Error $_ -ErrorAction Continue;exit 1}
+}catch{Write-Error $_ -ErrorAction Continue;exit 1}finally{if($lock){$lock.ReleaseMutex();$lock.Dispose()}}

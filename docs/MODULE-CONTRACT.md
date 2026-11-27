@@ -11,3 +11,5 @@ Module-specific optional restore or on-demand diagnostic commands may remain sta
 Standalone menu may dispatch module-specific capabilities without expanding the common catalog. Keep existing CLI/BAT compatibility. For private node data, isolate and restrict ACL, validate local listener ownership, bound requests and explicitly preserve the primary route. Fixture watchdog evidence is separate from live recovery; a preview may exclude all hazardous actions.
 
 Clash 1.1: source module requires building the locked Rust node-quality binary before its complete selftest. Standalone ZIP includes it. Current optimizer excludes monitoring. Conditional native group staging must not alter existing routes or credentials, and must preserve later edits on recovery.
+
+Clash 1.2 recovery manifests bind to the configuration directory and carry durable transaction state; refuse legacy unbound restores in the new tool. Old releases remain available for their own backups. Keep candidate generation separate from experimental write; generated-runtime checks are not network verification.

@@ -1,2 +1,2 @@
-Clash Verge Rev Optimizer v1.1.0-alpha.1 | Focused preview
-Extract ALL files, double-click Start.bat. Optimize.bat applies the guarded original preset; menu 8 preserves custom values; menu 9 generates measured policy candidates; menu 10 stages only after explicit confirmation and normal Clash exit. Read README.md. No network/hardware monitor. Preview, not stable; no auto AI switching or live TUN recovery.
+Clash Verge Rev Optimizer v1.2.0-rc.1 | Stability candidate
+Extract ALL files. Double-click Start.bat. 1 check; 2 optimize; 3 restore; V generated configuration check; R recovery list. Save work and close Clash normally before writing. Start Clash and reactivate subscription afterward. No monitoring or automatic node switching. Read README.md. Candidate, not universal stable release.
