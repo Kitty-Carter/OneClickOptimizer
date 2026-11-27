@@ -8,3 +8,5 @@
 - 1.0: stable only after multi-environment validation, recovery tests, transparent limitations and documentation. GUI optional, not a release gate in preview.
 
 Branch strategy: main for reviewed snapshots, feature/<module> for development, fix/<issue> for fixes. Public repository as explicitly approved by owner. Protect main and require successful Windows CI when available.
+
+Clash integrated preview 0.4: unified menu, detached rollback fixture, split native sampling/GPU estimate, bounded inline-node screening and local diagnostics. Remaining full-cycle gates: independent live service/route rollback, DNS path/security, evidence-based smart groups, persistent history, advanced telemetry, upstream GPLv3 integration, 30-minute per-mode and clean-machine validation. No claim of complete v6 optimization.

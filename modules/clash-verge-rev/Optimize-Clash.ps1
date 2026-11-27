@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([switch]$CheckOnly,[switch]$SelfTest,[string]$DataPath,[string]$BackupRoot,[string]$RestoreFrom,[switch]$RestorePrompt)
+param([switch]$CheckOnly,[switch]$SelfTest,[string]$DataPath,[string]$BackupRoot,[string]$RestoreFrom,[switch]$RestorePrompt,[string]$AppPath)
 $ErrorActionPreference='Stop'
 $utf8=New-Object System.Text.UTF8Encoding($false)
 $files=@('Merge.yaml','Script.js')
@@ -155,7 +155,7 @@ try{
  Write-Host 'China-oriented DNS and OpenAI routing preset for Clash Verge Rev 2.5.10 / Mihomo 1.19.33. Review guide. Close Clash manually first.'
  if((Read-Host 'Apply only to default extensions? [Y/N]') -notmatch '^[Yy]$'){exit 1}
  # Restrict automatic application to explicit verified version. Do not guess a core path.
- $exe=Read-Host 'Full path to installed clash-verge.exe'
+ $exe=if($AppPath){$AppPath}else{Read-Host 'Full path to installed clash-verge.exe'}
  if(!(Test-Path -LiteralPath $exe -PathType Leaf) -or [IO.Path]::GetFileName($exe) -ne 'clash-verge.exe'){throw 'App executable not confirmed'}
  $version=(Get-Item -LiteralPath $exe).VersionInfo.ProductVersion
  if($version -notmatch '^2\.5\.10(?:\.0)?$'){Write-Warning 'Version not validated; manual integration only.';exit 2}

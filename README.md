@@ -11,14 +11,14 @@
 | Positron | Clash Verge Rev |
 | :---: | :---: |
 | **Research workflow & configuration** | **Network configuration & PC monitoring** |
-| v0.1.0-alpha.1 · Windows preview | v0.3.0-alpha.3 · Windows preview |
-| [![Download Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![Download Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.3.0-alpha.3/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
-| [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [Module guide](modules/positron) | [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.3.0-alpha.3) · [Module guide](modules/clash-verge-rev) |
+| v0.1.0-alpha.1 · Windows preview | v0.4.0-alpha.1 · Windows preview |
+| [![Download Positron](docs/assets/download-positron.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/v0.1.0-alpha.1/Positron-OneClick-Optimizer-Windows.zip) | [![Download Clash Verge Rev](docs/assets/download-clash.svg)](https://github.com/Kitty-Carter/OneClickOptimizer/releases/download/clash-v0.4.0-alpha.1/Clash-Verge-Rev-OneClick-Optimizer-Windows.zip) |
+| [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) · [Module guide](modules/positron) | [Release notes](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/clash-v0.4.0-alpha.1) · [Module guide](modules/clash-verge-rev) |
 | Seven workflow settings, checks and backups | DNS, rules, AI routing preset; separate read-only NIC and hardware monitor |
 
 ## Get started
 
-Download the standalone ZIP for your application, extract all files and read START-HERE.txt. Check before applying and preserve custom settings. For Clash, Native-Monitor.bat opens the Rust basic monitor, Monitor.bat the richer hardware window, and Restore.bat restores a verified OCO backup. The historical Positron toolkit release contains Positron only.
+Download the standalone ZIP for your application, extract all files and read START-HERE.txt. Check before applying and preserve custom settings. For Clash, Start.bat opens the unified Chinese console menu for checks, guarded optimization/restore, native monitoring, current-path diagnosis and bounded node screening. The historical Positron toolkit release contains Positron only.
 
 ## Safety and compatibility
 

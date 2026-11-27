@@ -38,3 +38,10 @@
 - On-demand current-path HTTPS diagnostics, loopback listener guard, bounded requests and explicit HTTP/transport classification.
 - Optional one-shot IPPure current exit lookup; no background polling, node ranking or raw IP persistence.
 - Preserve MIT companion boundary; upstream GPLv3 native client integration remains separate.
+
+## Clash 0.4.0-alpha.1 integrated preview
+
+- Unified Chinese console, local health inspection, existing optimization and restore entries.
+- Native split sampling, GPU busiest-engine estimate and stale-state handling.
+- Bounded isolated inline-node screening, ACL-restricted temporary config, PID and job guards.
+- Detached rollback fixture and exact-commit package CI; no live TUN changes or completed native client integration.

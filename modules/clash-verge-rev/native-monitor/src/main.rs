@@ -23,6 +23,27 @@ fn cpu(old: [u64; 3], new: [u64; 3]) -> Option<f64> {
     }
     Some(100.0 * (total - idle) as f64 / total as f64)
 }
+fn gpu_busiest<'a>(rows: impl IntoIterator<Item = (&'a str, f64)>) -> Option<f64> {
+    let mut engines = std::collections::HashMap::<&str, f64>::new();
+    for (instance, value) in rows {
+        if !value.is_finite() || value < 0.0 {
+            continue;
+        }
+        let Some(i) = instance.find("_luid_") else {
+            continue;
+        };
+        let key = &instance[i..];
+        if !key.contains("_eng_") {
+            continue;
+        }
+        *engines.entry(key).or_default() += value;
+    }
+    engines
+        .values()
+        .copied()
+        .reduce(f64::max)
+        .map(|v| v.min(100.0))
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -62,6 +83,25 @@ mod tests {
         assert_eq!(accumulated(u64::MAX - 1, 0, 10, 2.0), u64::MAX);
     }
     #[test]
+    fn gpu_engine_aggregation() {
+        assert_eq!(
+            gpu_busiest([
+                ("pid_1_luid_a_eng_0", 25.0),
+                ("pid_2_luid_a_eng_0", 35.0),
+                ("pid_1_luid_a_eng_1", 40.0)
+            ]),
+            Some(60.0)
+        );
+        assert_eq!(
+            gpu_busiest([("bad", 99.0), ("pid_1_luid_a_eng_0", f64::NAN)]),
+            None
+        );
+        assert_eq!(
+            gpu_busiest([("pid_1_luid_a_eng_0", 90.0), ("pid_2_luid_a_eng_0", 30.0)]),
+            Some(100.0)
+        );
+    }
+    #[test]
     fn large_counters() {
         assert_eq!(rate(u64::MAX - 100, u64::MAX, 2.0), Some(50.0));
     }
@@ -92,8 +132,9 @@ mod win {
             LibraryLoader::GetModuleHandleW,
             Performance::{
                 PdhAddEnglishCounterW, PdhCloseQuery, PdhCollectQueryData,
-                PdhGetFormattedCounterValue, PdhOpenQueryW, PDH_FMT_COUNTERVALUE, PDH_FMT_DOUBLE,
-                PDH_HCOUNTER, PDH_HQUERY,
+                PdhGetFormattedCounterArrayW, PdhGetFormattedCounterValue, PdhOpenQueryW,
+                PDH_FMT_COUNTERVALUE, PDH_FMT_COUNTERVALUE_ITEM_W, PDH_FMT_DOUBLE, PDH_HCOUNTER,
+                PDH_HQUERY, PDH_MORE_DATA,
             },
             Power::{GetSystemPowerStatus, SYSTEM_POWER_STATUS},
             ProcessStatus::{K32GetProcessMemoryInfo, PROCESS_MEMORY_COUNTERS_EX},
@@ -497,29 +538,149 @@ mod win {
             )
         }
     }
+    struct Gpu {
+        query: PDH_HQUERY,
+        engine: PDH_HCOUNTER,
+    }
+    impl Drop for Gpu {
+        fn drop(&mut self) {
+            unsafe {
+                PdhCloseQuery(self.query);
+            }
+        }
+    }
+    impl Gpu {
+        fn new() -> Option<Self> {
+            unsafe {
+                let mut q = null_mut();
+                if PdhOpenQueryW(null(), 0, &mut q) != 0 {
+                    return None;
+                }
+                let mut g = Self {
+                    query: q,
+                    engine: null_mut(),
+                };
+                if PdhAddEnglishCounterW(
+                    q,
+                    wide(r"\GPU Engine(*)\Utilization Percentage").as_ptr(),
+                    0,
+                    &mut g.engine,
+                ) != 0
+                {
+                    return None;
+                }
+                Some(g)
+            }
+        }
+        fn sample(&mut self) -> Option<f64> {
+            unsafe {
+                if PdhCollectQueryData(self.query) != 0 {
+                    return None;
+                }
+                let (mut bytes, mut count) = (0u32, 0u32);
+                let fmt = PDH_FMT_DOUBLE | 0x8000;
+                let r = PdhGetFormattedCounterArrayW(
+                    self.engine,
+                    fmt,
+                    &mut bytes,
+                    &mut count,
+                    null_mut(),
+                );
+                if r != PDH_MORE_DATA || bytes == 0 || bytes > 2 * 1024 * 1024 {
+                    return None;
+                }
+                // Aligned buffer; bound both the array and UTF-16 strings.
+                let mut buf = vec![0u64; (bytes as usize + 7) / 8];
+                let base = buf.as_mut_ptr() as usize;
+                let end = base + buf.len() * 8;
+                let items = buf.as_mut_ptr().cast::<PDH_FMT_COUNTERVALUE_ITEM_W>();
+                if PdhGetFormattedCounterArrayW(self.engine, fmt, &mut bytes, &mut count, items)
+                    != 0
+                {
+                    return None;
+                }
+                if count as usize > buf.len() * 8 / size_of::<PDH_FMT_COUNTERVALUE_ITEM_W>() {
+                    return None;
+                }
+                let mut rows = Vec::new();
+                for item in std::slice::from_raw_parts(items, count as usize) {
+                    let address = item.szName as usize;
+                    if item.FmtValue.CStatus > 1
+                        || address < base
+                        || address >= end
+                        || address % 2 != 0
+                    {
+                        continue;
+                    }
+                    let limit = ((end - address) / 2).min(1024);
+                    let chars = std::slice::from_raw_parts(item.szName, limit);
+                    if let Some(n) = chars.iter().position(|&x| x == 0) {
+                        rows.push((
+                            String::from_utf16_lossy(&chars[..n]),
+                            item.FmtValue.Anonymous.doubleValue,
+                        ));
+                    }
+                }
+                gpu_busiest(rows.iter().map(|(n, v)| (n.as_str(), *v)))
+            }
+        }
+    }
+    struct SlowSampler {
+        core: CoreSampler,
+        disk: Option<Disk>,
+        gpu: Option<Gpu>,
+        advanced: bool,
+    }
+    impl SlowSampler {
+        fn new(advanced: bool) -> Self {
+            Self {
+                core: CoreSampler::default(),
+                disk: None,
+                gpu: None,
+                advanced,
+            }
+        }
+        fn take(&mut self) -> String {
+            let mut s = self.core.sample();
+            if self.advanced {
+                if self.disk.is_none() {
+                    self.disk = Disk::new();
+                }
+                if self.gpu.is_none() {
+                    self.gpu = Gpu::new();
+                }
+                let _ = writeln!(
+                    s,
+                    "\n{}",
+                    self.disk
+                        .as_mut()
+                        .map(|d| d.sample())
+                        .unwrap_or("Disk: N/A".into())
+                );
+                let _ = writeln!(
+                    s,
+                    "GPU busiest engine estimate: {}",
+                    percent(self.gpu.as_mut().and_then(|g| g.sample()))
+                );
+            } else {
+                let _ = writeln!(s, "\nDisk/GPU: disabled (Lite)");
+            }
+            s
+        }
+    }
     struct Sampler {
         prev_cpu: Option<[u64; 3]>,
         prev_nic: HashMap<u64, Nic>,
         tick: Option<Instant>,
         session: HashMap<u64, (u64, u64)>,
-        core: CoreSampler,
-        disk: Option<Disk>,
-        disk_enabled: bool,
-        disk_tick: Option<Instant>,
-        disk_text: String,
     }
     impl Sampler {
-        fn new(disk_enabled: bool) -> Self {
+        fn new() -> Self {
             Self {
                 prev_cpu: None,
                 prev_nic: HashMap::new(),
                 tick: None,
                 session: HashMap::new(),
-                core: CoreSampler::default(),
-                disk: None,
-                disk_enabled,
-                disk_tick: None,
-                disk_text: "Disk: N/A (warming up)".into(),
             }
         }
         fn take(&mut self) -> (String, bool) {
@@ -616,33 +777,19 @@ mod win {
                     let _ = writeln!(out, "N/A (Win32 error {code})");
                 }
             }
-            let _ = writeln!(out, "\n{}", self.core.sample());
-            if self.disk_enabled {
-                if self
-                    .disk_tick
-                    .map(|t| t.elapsed() >= Duration::from_secs(6))
-                    .unwrap_or(true)
-                {
-                    if self.disk.is_none() {
-                        self.disk = Disk::new();
-                    }
-                    self.disk_text = self
-                        .disk
-                        .as_mut()
-                        .map(|d| d.sample())
-                        .unwrap_or("Disk: N/A (counter unavailable)".into());
-                    self.disk_tick = Some(Instant::now());
-                }
-                let _ = writeln!(out, "{}", self.disk_text);
-            } else {
-                let _ = writeln!(out, "Disk: disabled (Lite mode)");
-            }
-            let _=writeln!(out,"\nRead-only / offline. NIC and CPU ~2 s; disk ~6 s. Session totals omit invalid intervals.\nMihomo CPU normalized by available logical CPUs. GPU: use hardware monitor.");
+            let _ = writeln!(
+                out,
+                "\nRead-only / offline. Session totals omit invalid intervals."
+            );
             (out, ok && cpu_now.is_some() && mem.is_some())
         }
     }
     struct Ui {
-        rx: Receiver<(String, bool)>,
+        rx: Receiver<(String, bool, Instant)>,
+        slow_rx: Receiver<(String, Instant)>,
+        fast: Option<(String, Instant)>,
+        slow: Option<(String, Instant)>,
+        displayed: String,
         started: Instant,
         edit: HWND,
         ticks: u32,
@@ -674,12 +821,47 @@ mod win {
                     let close = UI.with(|s| {
                         let mut b = s.borrow_mut();
                         let Some(u) = b.as_mut() else { return false };
-                        if let Ok((text, ok)) = u.rx.try_recv() {
+                        let mut changed = false;
+                        if let Ok((text, ok, tick)) = u.rx.try_recv() {
                             u.ticks += 1;
                             if ok {
                                 u.good += 1;
                             }
-                            SetWindowTextW(u.edit, wide(&text.replace('\n', "\r\n")).as_ptr());
+                            u.fast = Some((text, tick));
+                            changed = true;
+                        }
+                        if let Ok(v) = u.slow_rx.try_recv() {
+                            u.slow = Some(v);
+                            changed = true;
+                        }
+                        // Update stale labels even when a slow provider blocks.
+                        if changed
+                            || u.fast
+                                .as_ref()
+                                .map(|x| x.1.elapsed() > Duration::from_secs(6))
+                                .unwrap_or(false)
+                            || u.slow
+                                .as_ref()
+                                .map(|x| x.1.elapsed() > Duration::from_secs(18))
+                                .unwrap_or(false)
+                        {
+                            let f = u
+                                .fast
+                                .as_ref()
+                                .filter(|x| x.1.elapsed() <= Duration::from_secs(6))
+                                .map(|x| x.0.as_str())
+                                .unwrap_or("Basic data: N/A (waiting/stale)");
+                            let h = u
+                                .slow
+                                .as_ref()
+                                .filter(|x| x.1.elapsed() <= Duration::from_secs(18))
+                                .map(|x| x.0.as_str())
+                                .unwrap_or("Hardware data: N/A (waiting/stale)");
+                            let text = format!("{f}\n\n{h}");
+                            if text != u.displayed {
+                                SetWindowTextW(u.edit, wide(&text.replace('\n', "\r\n")).as_ptr());
+                                u.displayed = text;
+                            }
                         }
                         u.smoke && (u.ticks >= 3 || u.started.elapsed() >= Duration::from_secs(20))
                     });
@@ -706,13 +888,26 @@ mod win {
     fn gui(smoke: bool, disk: bool) -> Result<i32, String> {
         let (tx, rx) = mpsc::sync_channel(1);
         std::thread::spawn(move || {
-            let mut sampler = Sampler::new(disk);
+            let mut sampler = Sampler::new();
             loop {
-                match tx.try_send(sampler.take()) {
+                let (text, ok) = sampler.take();
+                match tx.try_send((text, ok, Instant::now())) {
                     Ok(()) | Err(TrySendError::Full(_)) => {}
                     Err(TrySendError::Disconnected(_)) => break,
                 }
                 std::thread::sleep(Duration::from_secs(2));
+            }
+        });
+        let (slow_tx, slow_rx) = mpsc::sync_channel(1);
+        std::thread::spawn(move || {
+            let mut slow = SlowSampler::new(disk);
+            loop {
+                let text = slow.take();
+                match slow_tx.try_send((text, Instant::now())) {
+                    Ok(()) | Err(TrySendError::Full(_)) => {}
+                    Err(TrySendError::Disconnected(_)) => break,
+                }
+                std::thread::sleep(Duration::from_secs(6));
             }
         });
         unsafe {
@@ -730,7 +925,8 @@ mod win {
             let hwnd = CreateWindowExW(
                 0,
                 class.as_ptr(),
-                wide("Clash Verge Rev - Native Monitor").as_ptr(),
+                wide("Clash Verge Rev - \u{7f51}\u{7edc}\u{4e0e}\u{7535}\u{8111}\u{76d1}\u{89c6}")
+                    .as_ptr(),
                 WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT,
                 CW_USEDEFAULT,
@@ -776,6 +972,10 @@ mod win {
             UI.with(|s| {
                 *s.borrow_mut() = Some(Ui {
                     rx,
+                    slow_rx,
+                    fast: None,
+                    slow: None,
+                    displayed: String::new(),
                     started: Instant::now(),
                     edit,
                     ticks: 0,
@@ -817,14 +1017,15 @@ mod win {
                         .filter(|x| *x >= 2 && *x <= 600)
                         .ok_or("watch count must be 2..600")?
                 };
-                let mut s = Sampler::new(disk);
+                let mut s = Sampler::new();
+                let mut slow = SlowSampler::new(disk);
                 let mut good = 0;
                 for i in 0..count {
                     if i > 0 {
                         std::thread::sleep(Duration::from_secs(2));
                     }
                     let (t, ok) = s.take();
-                    println!("SAMPLE {}\n{}", i + 1, t);
+                    println!("SAMPLE {}\n{}\n{}", i + 1, t, slow.take());
                     if ok {
                         good += 1;
                     }

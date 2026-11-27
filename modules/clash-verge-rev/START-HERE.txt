@@ -1,14 +1,4 @@
-Clash Verge Rev | OCO preview 0.3.0-alpha.3
-1. Read README.md (Chinese guide + hardware notes).
-2. Check.bat: read-only configuration check.
-3. Optimize.bat: default extensions only, explicit confirmation; activate in Clash manually.
-4. Monitor.bat: optional read-only network and hardware window.
-5. Monitor-Lite.bat: skip extra hardware counters. Close window to stop.
-6. SelfTest.bat: configuration fixture test. Backups stay local.
-Preview: no native integration or universal speed guarantee.
-
-Native-Monitor.bat: x64 Rust basic monitoring; close window to stop. Monitor.bat: richer C# hardware window. Restore.bat: guarded two-file OCO backup restore; close Clash first. Read README.md for limits.
-
-Native-Monitor-Lite.bat: Rust monitoring without disk counters. Native-Monitor.bat also shows disk and Mihomo process counters when readable; use Monitor.bat for GPU. See latest section in README.md.
-
-Diagnose.bat: current routed network health, sends six HTTPS requests. Inspect-Exit.bat: optional one-time IPPure query, confirm before sending; no raw IP saved. Default 7897; custom port via Diagnose-Clash.ps1 -Port PORT.
+Clash Verge Rev Optimizer 0.4.0-alpha.1 | Windows x64 preview
+Extract all files. Double-click Start.bat for the Chinese console menu.
+1 checks local state; 2 guarded optimization; 3 restores an OCO backup; 4/5 native monitoring; 6 HTTPS diagnostics; 7 bounded node screening; 8 optional IPPure.
+Keep old entries for compatibility. No automatic node switching, no live TUN rollback, no modified official client. Read README.md for limitations.

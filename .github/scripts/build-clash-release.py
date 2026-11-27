@@ -2,7 +2,7 @@ import pathlib,subprocess,hashlib,zipfile,argparse,tempfile,os,json
 p=argparse.ArgumentParser();p.add_argument("--ref",required=True);p.add_argument("--output",required=True);a=p.parse_args()
 root=pathlib.Path(__file__).resolve().parents[2]
 module="modules/clash-verge-rev/"
-files=["Check.bat","Optimize.bat","SelfTest.bat","Monitor.bat","Monitor-Lite.bat","Native-Monitor.bat","Native-Monitor-Lite.bat","Restore.bat","Diagnose.bat","Inspect-Exit.bat","Diagnose-Clash.ps1","Optimize-Clash.ps1","Monitor-Clash.ps1","Monitor.cs","manifest.json","README.md","START-HERE.txt","presets/Merge.yaml","presets/Script.js","tests/test-presets.js","native-monitor/Cargo.toml","native-monitor/Cargo.lock","native-monitor/src/main.rs","native-monitor/.gitignore"]
+files=["Start.bat","Start-ClashOptimizer.ps1","Inspect-Local.ps1","tests/Test-Watchdog.ps1","Check.bat","Optimize.bat","SelfTest.bat","Monitor.bat","Monitor-Lite.bat","Native-Monitor.bat","Native-Monitor-Lite.bat","Restore.bat","Diagnose.bat","Inspect-Exit.bat","Diagnose-Clash.ps1","Optimize-Clash.ps1","Monitor-Clash.ps1","Monitor.cs","manifest.json","README.md","START-HERE.txt","presets/Merge.yaml","presets/Script.js","tests/test-presets.js","native-monitor/Cargo.toml","native-monitor/Cargo.lock","native-monitor/src/main.rs","native-monitor/src/bin/oco-node-quality.rs","native-monitor/.gitignore"]
 out=pathlib.Path(a.output).resolve();out.mkdir(parents=True,exist_ok=True)
 name="Clash-Verge-Rev-OneClick-Optimizer-Windows.zip";zip_path=out/name
 if zip_path.exists():raise SystemExit("Refuse to overwrite existing ZIP")
@@ -15,11 +15,14 @@ with tempfile.TemporaryDirectory(prefix="oco-native-build-") as tmp:
   if f.startswith("native-monitor/"):
    dest=t/f;dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(data)
  crate=t/"native-monitor"
- env=os.environ.copy();env["CARGO_TARGET_DIR"]=str(t/"target")
+ env=os.environ.copy();env["CARGO_TARGET_DIR"]=str(t/"target");env["CARGO_BUILD_JOBS"]="1"
  subprocess.run(["cargo","build","--release","--locked","--target","x86_64-pc-windows-msvc"],cwd=crate,env=env,check=True)
  binary=t/"target/x86_64-pc-windows-msvc/release/oco-clash-monitor.exe"
  if not binary.is_file():raise RuntimeError("Native build output missing")
  payload["bin/oco-clash-monitor.exe"]=binary.read_bytes()
+ quality=binary.with_name("oco-node-quality.exe")
+ if not quality.is_file():raise RuntimeError("Node quality build output missing")
+ payload["bin/oco-node-quality.exe"]=quality.read_bytes()
  meta=json.loads(subprocess.check_output(["cargo","metadata","--locked","--format-version","1"],cwd=crate,env=env))
  for pkg in meta["packages"]:
   if pkg["name"]=="oco-clash-monitor":continue
