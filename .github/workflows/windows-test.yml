@@ -26,3 +26,6 @@ jobs:
       - name: Test Positron in isolated fixtures
         shell: powershell
         run: powershell.exe -NoProfile -File .\tests\Test-Positron.ps1
+      - name: Test Clash in isolated fixtures
+        shell: powershell
+        run: powershell.exe -NoProfile -File .\modules\clash-verge-rev\Optimize-Clash.ps1 -SelfTest

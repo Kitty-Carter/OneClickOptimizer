@@ -1,0 +1,1 @@
+Windows preview. Read README.md. Check.bat first. Optimize.bat only for default extensions. No subscriptions included. Keep backups local.

@@ -23,7 +23,7 @@
 OneClickOptimizer is an open-source, offline-first, modular one-click optimization toolkit for Windows applications. It turns curated optimization presets with documented rationale, applicability and risks into automated tools: detect the application, check compatibility, back up existing settings, apply the preset and verify the result. The focus is applying optimization presets, not cloning or syncing personal configurations. No universal speed improvement is promised.
 
 > [!NOTE]
-> **Development preview · v0.1.0-alpha.1** — Positron is the only implemented module. Choose a user ZIP under Assets on the Releases page. This is a preview, not a stable release. This is not a universal PC speed booster.
+> **Development preview · v0.1.0-alpha.1** — Positron has an existing downloadable preview; Clash Verge Rev is a new source preview. Choose a user ZIP under Assets on the Releases page. This is a preview, not a stable release. This is not a universal PC speed booster.
 
 ## Featured module | Positron Optimizer
 
@@ -34,7 +34,7 @@ OneClickOptimizer is an open-source, offline-first, modular one-click optimizati
 | **[Positron-OneClick-Optimizer-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1)** | Recommended · Positron users; extract and double-click the BAT |
 | [OneClickOptimizer-Toolkit-Preview-Windows.zip](https://github.com/Kitty-Carter/OneClickOptimizer/releases/tag/v0.1.0-alpha.1) | Users who want the unified toolkit entry point |
 
-Choose the corresponding asset on the release page. Both previews contain the same Positron configuration functionality.
+Choose the corresponding asset on the release page. The existing release packages contain Positron only. The Clash module is available in source, not in those ZIPs.
 
 ## Why OneClickOptimizer?
 
@@ -49,6 +49,10 @@ Choose the corresponding asset on the release page. Both previews contain the sa
 | **[Positron](modules/positron)** | Preview · 7 setting goals | Quarto outline, editor rulers and zoom, R package installer, notebook execution and diagnostics. |
 
 [Read the Positron guide →](modules/positron/使用说明.md)
+
+## Clash Verge Rev
+
+[Open the Clash module and instructions](modules/clash-verge-rev). Use Check.bat first; existing custom extensions are preserved. [Source ZIP](https://github.com/Kitty-Carter/OneClickOptimizer/archive/refs/heads/main.zip) contains both modules. No Clash release asset yet.
 
 ## Get started
 

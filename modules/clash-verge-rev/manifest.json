@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "clash-verge-rev",
+  "name": "Clash Verge Rev",
+  "version": "0.1.0-alpha.1",
+  "status": "preview",
+  "entry": "Optimize-Clash.ps1",
+  "modes": [
+    "check",
+    "selftest",
+    "optimize"
+  ],
+  "requires": {
+    "os": "Windows",
+    "powershell": "5.1"
+  },
+  "risk": "network configuration; explicit opt-in",
+  "exitCodes": {
+    "0": "check/selftest or files already matched",
+    "1": "failed/cancelled",
+    "2": "partial/manual activation"
+  }
+}
